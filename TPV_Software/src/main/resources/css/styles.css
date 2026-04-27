@@ -1,0 +1,21 @@
+.mfx-button {
+    -fx-background-radius: 24;
+    -fx-padding: 8 24 8 24;
+    -fx-font-weight: bold;
+}
+
+.mfx-button:hover {
+    -fx-opacity: 0.9;
+}
+
+.mfx-text-field {
+    -fx-pref-width: 250;
+}
+
+.mfx-combo-box {
+    -fx-pref-width: 250;
+}
+
+.mfx-tab-pane .tab-header-area {
+    -fx-padding: 10 0 0 0;
+}
