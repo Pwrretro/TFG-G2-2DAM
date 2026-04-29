@@ -1,0 +1,51 @@
+
+/* ------------------- Scrollbar vertical ------------------- */
+.scroll-bar:vertical {
+    /* Fondo del carril completo: gris muy claro para contrastar con blanco */
+    -fx-background-color: #f0f0f0;
+    -fx-background-radius: 10;
+    -fx-pref-width: 12; /* Un pelín más ancha para apreciar el contraste */
+}
+
+.scroll-bar:vertical .track {
+    /* Aseguramos que el track sea transparente para ver el fondo del scroll-bar */
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .thumb {
+    /* La barra que se mueve ahora es morada */
+    -fx-background-color: -morado-principal;
+    -fx-background-insets: 2; /* Margen para que se vea el carril gris a los lados */
+    -fx-background-radius: 10;
+}
+
+.scroll-bar:vertical .thumb:hover {
+    /* Efecto al pasar el ratón: un morado un poco más oscuro o aclarado */
+    -fx-opacity: 0.8;
+}
+
+    /* Eliminar botones de flecha para mantener el diseño limpio */
+.scroll-bar:vertical .increment-button,
+.scroll-bar:vertical .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-bar:vertical .increment-arrow,
+.scroll-bar:vertical .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
+/* ------------------- scrollbar horizontal (si apareciera) ------------------- */
+.scroll-bar:horizontal {
+    -fx-background-color: #f0f0f0;
+    -fx-background-radius: 10;
+    -fx-pref-height: 12;
+}
+
+.scroll-bar:horizontal .thumb {
+    -fx-background-color: -morado-principal;
+    -fx-background-insets: 2;
+    -fx-background-radius: 10;
+}

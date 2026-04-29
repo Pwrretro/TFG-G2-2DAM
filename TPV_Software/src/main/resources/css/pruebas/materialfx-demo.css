@@ -1,3 +1,5 @@
+/*Complectly useless*/
+
 .section-title {
     -fx-font-size: 16px;
     -fx-font-weight: bold;
@@ -22,7 +24,7 @@
     -fx-stroke: #ecf0f1;
 }
 .mfx-progress-spinner .progress {
-    -fx-stroke: #2ecc71;
+    -fx-stroke: #015001;
 }
 
 .mfx-date-picker {

@@ -1,21 +1,117 @@
+@import "scroll-bar.css";
+@import "colores.css";
+
+/*
+
+    ESTO ES SUPER IMPORTANTE ORDENARLO PARA HACERLO ESCALABLE 😭😭😭😭😭😭
+
+*/
+
+/* Estilos generales */
 .mfx-button {
     -fx-background-radius: 24;
     -fx-padding: 8 24 8 24;
     -fx-font-weight: bold;
+    -fx-cursor: hand;
 }
 
 .mfx-button:hover {
     -fx-opacity: 0.9;
 }
 
-.mfx-text-field {
+.mfx-text-field, .mfx-combo-box {
     -fx-pref-width: 250;
 }
 
-.mfx-combo-box {
-    -fx-pref-width: 250;
+/* Panel lateral izquierdo */
+.sidebar {
+    -fx-background-color: -gris-fondo-lateral;
 }
 
-.mfx-tab-pane .tab-header-area {
-    -fx-padding: 10 0 0 0;
+.avatar-circle {
+    -fx-fill: -blanco;
+    -fx-stroke: -morado-principal;
+    -fx-stroke-width: 2;
+}
+
+.username-label {
+    -fx-font-size: 20;
+    -fx-font-weight: bold;
+    -fx-text-fill: -morado-principal;
+}
+
+.logout-button {
+    -fx-border-color: -morado-principal;
+    /*-fx-border-radius: 50;*/
+    -fx-background-radius: 50;
+    -fx-min-width: 40;
+    -fx-min-height: 40;
+    -fx-max-width: 40;
+    -fx-max-height: 40;
+    -fx-font-size: 18;
+}
+
+/* Centro (categorías) */
+.section-title {
+    -fx-font-size: 22;
+    -fx-font-weight: bold;
+    -fx-text-fill: -morado-principal;
+}
+
+.custom-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: -blanco;
+}
+
+/* Panel derecho (resumen)  */
+.summary-pane {
+    -fx-background-color: -blanco;
+    -fx-border-color: -gris-borde;
+    -fx-border-width: 0 0 0 1;
+}
+
+.summary-content {
+    -fx-background-color: -gris-fondo-resumen;
+    -fx-background-radius: 10;
+}
+
+.subtotal-label {
+    -fx-font-size: 20;
+    -fx-font-weight: bold;
+    -fx-text-fill: -morado-principal;
+}
+
+/* Botón Pagar */
+.mfx-button-pagar {
+    -fx-background-color: -teal-accion;
+    -fx-text-fill: -negro-texto;
+    -fx-font-size: 16px;
+    -fx-background-radius: 25;
+}
+
+/* Botones de categoría y producto (existentes) */
+.mfx-button-categoria {
+    -fx-background-color: -morado-principal;
+    -fx-text-fill: -blanco;
+    -fx-content-display: TOP;
+    -fx-text-alignment: CENTER;
+    -fx-background-radius: 20;
+}
+
+.mfx-button-producto {
+    -fx-background-color: -blanco;
+    -fx-border-color: -morado-principal;
+    -fx-border-width: 2;
+    /*-fx-border-radius: 20;*/
+    -fx-background-radius: 20;
+    -fx-text-fill: -morado-principal;
+    -fx-content-display: TOP;
+}
+
+
+/*Centrar imagen de perfil*/
+.avatar-border {
+    -fx-stroke: -morado-principal;
+    -fx-stroke-width: 3;
+    -fx-fill: transparent;
 }

@@ -15,7 +15,7 @@ public class Main extends Application {
     public void start(Stage stage) throws IOException {
 
         // --- Inicialización del tema ---
-        UserAgentBuilder.builder()
+       UserAgentBuilder.builder()
                 .themes(JavaFXThemes.MODENA)                     // Tema base de JavaFX
                 .themes(MaterialFXStylesheets.forAssemble(true)) // Tema de MaterialFX
                 .setDeploy(true)                                // Extraer los assets necesarios
@@ -23,13 +23,19 @@ public class Main extends Application {
                 .build()
                 .setGlobal();                                   // Para hacerlo global
 
-        System.setProperty("javafx.controls.useragentStylesheet", "true");
+        //System.setProperty("javafx.controls.useragentStylesheet", "true");
 
-        FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("vistas/inicio_de_sesion.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 800, 600);
-        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+        FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("vistas/inicio_de_sesion.fxml")); //Arreglado de mejor manera
+        Scene escenaPrincipal = new Scene(fxmlLoader.load(), 960, 750); //Se define un tamaño que no rompe la app
+
+        escenaPrincipal.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+
         stage.setTitle("PurpleBOX");
-        stage.setScene(scene);
+        //Tamaño mínimo de la escena
+        stage.minHeightProperty().bind(escenaPrincipal.heightProperty());
+        stage.minWidthProperty().bind(escenaPrincipal.widthProperty());
+
+        stage.setScene(escenaPrincipal);
         stage.show();
     }
 

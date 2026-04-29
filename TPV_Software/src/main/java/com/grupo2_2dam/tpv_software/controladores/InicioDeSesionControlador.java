@@ -1,10 +1,14 @@
 package com.grupo2_2dam.tpv_software.controladores;
 
+import com.grupo2_2dam.tpv_software.util.CambiarVistas;
 import io.github.palexdev.materialfx.controls.MFXButton;
 import io.github.palexdev.materialfx.controls.MFXPasswordField;
 import io.github.palexdev.materialfx.controls.MFXTextField;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.stage.Stage;
+
+import java.io.IOException;
 
 public class InicioDeSesionControlador {
 
@@ -61,8 +65,12 @@ public class InicioDeSesionControlador {
             java.sql.ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                System.out.println("¡Inicio de sesión correcto! Bienvenido " + rs.getString("USERNAME"));
-                // MOSTRAMOS VISTA PRINCIPAL
+                //System.out.println("¡Inicio de sesión correcto! Bienvenido " + rs.getString("NOMBRE_USUARIO"));
+
+                // Obtener el Stage desde cualquier nodo (ej. loginButton)
+                Stage stage = (Stage) loginButton.getScene().getWindow();
+                String vistaPrincipal = "/com/grupo2_2dam/tpv_software/vistas/vista_principal.fxml";
+                CambiarVistas.cambiarVista(vistaPrincipal, stage); // Cambiar de vista
 
             } else {
                 mostrarAlerta("Error al iniciar sesión", "Usuario o contraseña incorrectos");
@@ -71,6 +79,9 @@ public class InicioDeSesionControlador {
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
             mostrarAlerta("Error de BD", "No se pudo conectar a la base de datos.");
+        } catch (IOException e) {
+            //Error al cargar la vista
+            throw new RuntimeException(e);
         }
     }
     private void mostrarAlerta(String titulo, String contenido) {
