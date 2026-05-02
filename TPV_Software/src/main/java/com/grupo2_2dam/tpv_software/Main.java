@@ -42,4 +42,29 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch();
     }
+
+
+    //public class Main {
+    //    public static void main(String[] args) {
+    //        try {
+    //            // 1. Registras un usuario: generar un hash y guarda en DB
+    //            String password = "contraseña123";
+    //            String hash = PasswordHasher.hashPassword(password);
+    //            System.out.println("Hash que se guarda en DB: " + hash);
+    //
+    //            // 2. Validar login: comparar contraseña con el hash
+    //            String passwordIngresada = "contraseña123";
+    //            boolean esCorrecta = PasswordHasher.verifyPassword(passwordIngresada, hash);
+    //            System.out.println("Contraseña correcta " + esCorrecta);
+    //
+    //            // Prueba contraseña incorrecta
+    //            String passwordIncorrecta = "Contrasena1234";
+    //            boolean esIncorrecta = PasswordHasher.verifyPassword(passwordIncorrecta, hash);
+    //            System.out.println("Contraseña incorrecta " + esIncorrecta);
+    //
+    //        } catch (Exception e) {
+    //            e.printStackTrace();
+    //        }
+    //    }
+    //}
 }
