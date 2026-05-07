@@ -30,7 +30,23 @@
 
             <!-- Nombre de usuario -->
             <Label fx:id="nombre_Usuario" styleClass="username-label" text="Usuario" />
-         <MFXScrollPane focusTraversable="false" prefHeight="318.0" prefWidth="250.0" />
+
+            <!--Botones de Gestión -->
+            <VBox spacing="10.0" alignment="CENTER">
+                <padding><Insets left="20.0" right="20.0" /></padding>
+                <Label text="Gestión" styleClass="section-subtitle" />
+
+                <MFXButton fx:id="btnAnadir" text="Añadir Categoría" onAction="#handleAddCategoria"
+                           maxWidth="Infinity" styleClass="mfx-button-admin" />
+
+                <MFXButton fx:id="btnModificar" text="Modificar Categoría" onAction="#handleModificarCategoria"
+                           maxWidth="Infinity" styleClass="mfx-button-admin" />
+
+                <MFXButton fx:id="btnEliminar" text="Eliminar Categoría" onAction="#handleEliminarCategoria"
+                           maxWidth="Infinity" styleClass="mfx-button-admin-delete" />
+            </VBox>
+
+            <MFXScrollPane focusTraversable="false" prefHeight="318.0" prefWidth="250.0" />
             <MFXButton fx:id="regresarButton" alignment="CENTER" onAction="#cerrar_sesion" styleClass="mfx-button, logout-button" text="⬅️" />
         </VBox>
     </left>
@@ -49,7 +65,8 @@
                     <MFXButton prefHeight="120.0" prefWidth="150.0" styleClass="mfx-button-producto" text="Poducto" />
                     -->
 
-                    <!-- Ejemplos de Categoría -->
+                    <!--Comento los ejemplos para mostrar lo guardado en la BD-->
+                    <!-- Ejemplos de Categoría
                     <MFXButton prefHeight="120.0" prefWidth="150.0" styleClass="mfx-button-categoria">
                         <graphic>
                             <ImageView fitWidth="70" fitHeight="70" preserveRatio="true" fx:id="foto_categoria"/>
@@ -57,14 +74,14 @@
                         <text>Frutas y verduras</text>
                     </MFXButton>
 
-                    <!-- Ejemplo de productos -->
+                     Ejemplo de productos
                     <MFXButton prefHeight="120.0" prefWidth="150.0" styleClass="mfx-button-producto" contentDisplay="TOP">
                         <graphic>
                             <ImageView fitWidth="70" fitHeight="70" preserveRatio="true" fx:id="foto_mango"/>
                         </graphic>
                         <text>Mango</text>
                     </MFXButton>
-
+                    -->
                 </FlowPane>
             </ScrollPane>
         </VBox>
