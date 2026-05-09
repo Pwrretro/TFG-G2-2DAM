@@ -1,4 +1,4 @@
-package com.grupo2_2dam.tpv_software;
+package com.grupo2_2dam.tpv_software.util;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;

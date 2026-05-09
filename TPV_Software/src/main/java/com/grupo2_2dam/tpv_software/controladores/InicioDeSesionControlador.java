@@ -1,6 +1,8 @@
 package com.grupo2_2dam.tpv_software.controladores;
 
 import com.grupo2_2dam.tpv_software.util.CambiarVistas;
+import com.grupo2_2dam.tpv_software.util.HashContraseña;
+import com.grupo2_2dam.tpv_software.util.crud.ConsultasCreate;
 import io.github.palexdev.materialfx.controls.MFXButton;
 import io.github.palexdev.materialfx.controls.MFXPasswordField;
 import io.github.palexdev.materialfx.controls.MFXTextField;
@@ -16,8 +18,16 @@ public class InicioDeSesionControlador {
     @FXML private MFXPasswordField passwordField;
     @FXML private MFXButton loginButton;
 
+
+    // Identificamos si el usuario admin existe
+    private final String querryContraseña = "SELECT contraseÑa_usuario FROM USUARIOS WHERE NOMBRE_USUARIO = ?";
+
     @FXML
     public void initialize() {
+        //Crear usuario admin si no existe
+        ConsultasCreate c = new ConsultasCreate();
+        c.createAdminUser("admin", "admin");
+
         // El texto flotante sobre los MFXTextField
         usernameField.setFloatingText("Usuario");
 
@@ -48,42 +58,59 @@ public class InicioDeSesionControlador {
         String password = passwordField.getText();
 
         if (username.isEmpty() || password.isEmpty()) {
-            mostrarAlerta("Error", "Los campos no pueden estar vacíos");
+            mostrarAlerta("Error", "Los campos no pueden estar vacíos.");
             return;
         }
 
-        // Consulta SQL para buscar al usuario
-        String sql = "SELECT * FROM USUARIOS WHERE NOMBRE_USUARIO = ? AND CONTRASEÑA_USUARIO = ?";
+        // Consulta SQL para buscar al usuario - se cambió el querry
+        //String sql = "SELECT * FROM USUARIOS WHERE NOMBRE_USUARIO = ? AND CONTRASEÑA_USUARIO = ?";
 
         // Usamos try-with-resources para que la conexión se cierre sola al terminar
-        try (java.sql.Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
-             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (
+            java.sql.Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
+            java.sql.PreparedStatement pstmt = conn.prepareStatement(querryContraseña)
+        ) {
 
             pstmt.setString(1, username);
-            pstmt.setString(2, password);
+            //pstmt.setString(2, password); // Obtenemos abajo las nuevas comprobaciones
 
             java.sql.ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                //System.out.println("¡Inicio de sesión correcto! Bienvenido " + rs.getString("NOMBRE_USUARIO"));
 
-                // Obtener el Stage desde cualquier nodo (ej. loginButton)
-                Stage stage = (Stage) loginButton.getScene().getWindow();
-                String vistaPrincipal = "/com/grupo2_2dam/tpv_software/vistas/vista_principal.fxml";
-                CambiarVistas.cambiarVista(vistaPrincipal, stage); // Cambiar de vista
+                boolean verificarPassword = false;
+
+                //Obtenemos y guardamos la contraseña de la base de datos (hasheada)
+                String hashAlmacenado = rs.getString(1);
+
+                //Comparar contraseña hasheada con la puesta por el usuario:
+                try{
+                    verificarPassword = HashContraseña.verifyPassword(password, hashAlmacenado);
+                }catch (Exception e){
+                    e.printStackTrace();
+                    mostrarAlerta("Error contraseña: ", "Usuario o contraseña incorrecta.");
+                    return;
+                }
+
+                if (verificarPassword){
+                    // Obtener el Stage desde cualquier nodo (ej. loginButton)
+                    Stage stage = (Stage) loginButton.getScene().getWindow();
+                    String vistaPrincipal = "/com/grupo2_2dam/tpv_software/vistas/vista_principal.fxml";
+                    CambiarVistas.cambiarVista(vistaPrincipal, stage); // Cambiar de vista
+                }
 
             } else {
                 mostrarAlerta("Error al iniciar sesión", "Usuario o contraseña incorrectos");
             }
 
         } catch (java.sql.SQLException e) {
-            e.printStackTrace();
             mostrarAlerta("Error de BD", "No se pudo conectar a la base de datos.");
         } catch (IOException e) {
-            //Error al cargar la vista
-            throw new RuntimeException(e);
+            //Cualquier otro error
+            mostrarAlerta("Error", "Hubo un error: " + e.getMessage());
         }
     }
+
     private void mostrarAlerta(String titulo, String contenido) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(titulo);

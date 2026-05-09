@@ -43,7 +43,9 @@ public class Main extends Application {
         launch();
     }
 
-
+    /*
+     * Funcionamiento de la clase util/HashContraseña
+     */
     //public class Main {
     //    public static void main(String[] args) {
     //        try {
