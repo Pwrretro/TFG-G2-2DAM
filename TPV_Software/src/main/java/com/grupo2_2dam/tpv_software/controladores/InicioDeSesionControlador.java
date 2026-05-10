@@ -20,7 +20,7 @@ public class InicioDeSesionControlador {
 
 
     // Identificamos si el usuario admin existe
-    private final String querryContraseña = "SELECT contraseÑa_usuario FROM USUARIOS WHERE NOMBRE_USUARIO = ?";
+    private final String querryContraseña = "SELECT contrasena_usuario FROM USUARIOS WHERE NOMBRE_USUARIO = ?";
 
     @FXML
     public void initialize() {

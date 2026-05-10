@@ -11,7 +11,7 @@ public class ConsultasCreate {
 
     //Querries para buscar el admin y para
     private final String selectAdminUser = "select * from usuarios where nombre_usuario='admin'";
-    private final String createUserAdmin = "insert into usuarios (nombre_usuario, contraseÑa_usuario) values(?,?)";
+    private final String createUserAdmin = "insert into usuarios (nombre_usuario, contrasena_usuario) values(?,?)";
 
     /**
      * Método para crear usuarios en la base de datos
