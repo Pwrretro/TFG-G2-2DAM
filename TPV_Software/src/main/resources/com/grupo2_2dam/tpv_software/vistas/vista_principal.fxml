@@ -36,13 +36,13 @@
                 <padding><Insets left="20.0" right="20.0" /></padding>
                 <Label text="Gestión" styleClass="section-subtitle" />
 
-                <MFXButton fx:id="btnAnadir" text="Añadir Categoría" onAction="#handleAddCategoria"
+                <MFXButton fx:id="btnAnadir" text="Añadir Categoría" onAction="#handleAdd"
                            maxWidth="Infinity" styleClass="mfx-button-admin" />
 
-                <MFXButton fx:id="btnModificar" text="Modificar Categoría" onAction="#handleModificarCategoria"
+                <MFXButton fx:id="btnModificar" text="Modificar Categoría" onAction="#handleModificar"
                            maxWidth="Infinity" styleClass="mfx-button-admin" />
 
-                <MFXButton fx:id="btnEliminar" text="Eliminar Categoría" onAction="#handleEliminarCategoria"
+                <MFXButton fx:id="btnEliminar" text="Eliminar Categoría" onAction="#handleEliminar"
                            maxWidth="Infinity" styleClass="mfx-button-admin-delete" />
             </VBox>
 
