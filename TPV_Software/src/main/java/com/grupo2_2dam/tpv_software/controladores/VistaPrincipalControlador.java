@@ -49,6 +49,11 @@ public class VistaPrincipalControlador {
     private int currentCategId = -1;
     private String currentCategNombre = "";
 
+    //Ticket
+    @FXML private javafx.scene.layout.VBox ticketVBox;
+    @FXML private javafx.scene.control.Label subtotalLabel;
+    private double subtotalVenta = 0.0;
+
     /*
     Definimos usuario
     public void setUsuario(String nombreUsuario) {
@@ -233,8 +238,8 @@ public class VistaPrincipalControlador {
         });
     }
     //------------------------------------CATEGORÍA-------------------------------------
-    //------------------------------------PRODUCTOS-------------------------------------
 
+    //------------------------------------PRODUCTOS-------------------------------------
     private void addProducto() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Nuevo Producto");
@@ -251,21 +256,35 @@ public class VistaPrincipalControlador {
                 return;
             }
 
-            //Generamos un id para el producto creado
-            String codProducto = "PROD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            TextInputDialog precioDialog = new TextInputDialog("0.00");
+            precioDialog.setTitle("Precio de Venta");
+            precioDialog.setHeaderText("Introduce el precio para: " + nombre);
+            precioDialog.setContentText("Precio:");
 
-            String sql = "INSERT INTO PRODUCTOS (COD_PRODUCTO, NOMBRE_PRODUCTO, COD_CATEGORIA) VALUES (?, ?, ?)";
-            try (Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
-                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setString(1, codProducto);
-                pstmt.setString(2, nombre);
-                pstmt.setInt(3, currentCategId);
-                pstmt.executeUpdate();
-                cargarProductos();
-            } catch (SQLException e) {
-                e.printStackTrace();
-                mostrarAlerta("Error en la Base de Datos", "No se pudo añadir el producto.");
-            }
+            precioDialog.showAndWait().ifPresent(precioStr -> {
+                try {
+                    double precio = Double.parseDouble(precioStr.replace(",", "."));
+
+                    //Generamos un id para el producto creado
+                    String codProducto = "PROD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+                    String sql = "INSERT INTO PRODUCTOS (COD_PRODUCTO, NOMBRE_PRODUCTO, PRECIO_VENTA_PRODUCTO, COD_CATEGORIA) VALUES (?, ?, ?, ?)";
+                    try (Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
+                         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                        pstmt.setString(1, codProducto);
+                        pstmt.setString(2, nombre);
+                        pstmt.setDouble(3, precio);
+                        pstmt.setInt(4, currentCategId);
+                        pstmt.executeUpdate();
+                        cargarProductos();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                        mostrarAlerta("Error en la Base de Datos", "No se pudo añadir el producto.");
+                    }
+                } catch (NumberFormatException e) {
+                    mostrarAlerta("Error", "Por favor, introduce un precio válido.");
+                }
+            });
         });
     }
 
@@ -284,17 +303,31 @@ public class VistaPrincipalControlador {
             nameDialog.setContentText("Nuevo nombre para " + nombreOriginal + ":");
 
             nameDialog.showAndWait().ifPresent(nuevoNombre -> {
-                String sql = "UPDATE PRODUCTOS SET NOMBRE_PRODUCTO = ? WHERE UPPER(NOMBRE_PRODUCTO) = UPPER(?) AND COD_CATEGORIA = ?";
-                try (Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                    pstmt.setString(1, nuevoNombre.trim());
-                    pstmt.setString(2, nombreOriginal.trim());
-                    pstmt.setInt(3, currentCategId);
-                    pstmt.executeUpdate();
-                    cargarProductos();
-                } catch (SQLException e) {
-                    mostrarAlerta("Error en la Base de Datos", "No se pudo actualizar.");
-                }
+                TextInputDialog priceDialog = new TextInputDialog();
+                priceDialog.setTitle("Nuevo Precio");
+                priceDialog.setHeaderText("Introduce el nuevo precio para: " + nuevoNombre);
+                priceDialog.setContentText("Precio:");
+
+                priceDialog.showAndWait().ifPresent(precioStr -> {
+                    try {
+                        double nuevoPrecio = Double.parseDouble(precioStr.replace(",", "."));
+
+                        String sql = "UPDATE PRODUCTOS SET NOMBRE_PRODUCTO = ?, PRECIO_VENTA_PRODUCTO = ? WHERE UPPER(NOMBRE_PRODUCTO) = UPPER(?) AND COD_CATEGORIA = ?";
+                        try (Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
+                             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                            pstmt.setString(1, nuevoNombre.trim());
+                            pstmt.setDouble(2, nuevoPrecio);
+                            pstmt.setString(3, nombreOriginal.trim());
+                            pstmt.setInt(4, currentCategId);
+                            pstmt.executeUpdate();
+                            cargarProductos();
+                        } catch (SQLException e) {
+                            mostrarAlerta("Error en la Base de Datos", "No se pudo actualizar.");
+                        }
+                    } catch (NumberFormatException e) {
+                        mostrarAlerta("Error", "Por favor, introduce un precio válido.");
+                    }
+                });
             });
         });
     }
@@ -427,8 +460,8 @@ public class VistaPrincipalControlador {
                 btnProducto.getStyleClass().add("mfx-button-producto");
                 btnProducto.setPrefSize(150, 120);
 
-                // Añadir lógica para agregar el producto al carrito
-                // btnProducto.setOnAction(e -> agregarAlTicket(nombre));
+                //agregamos el producto al carrito
+                btnProducto.setOnAction(e -> agregarAlTicket(nombre));
 
                 flowProductos.getChildren().add(btnProducto);
             }
@@ -462,5 +495,135 @@ public class VistaPrincipalControlador {
         if (btnEliminar != null) btnEliminar.setText("Eliminar Producto");
 
         cargarProductos();
+    }
+
+    private void agregarAlTicket(String nombreProducto) {
+        String nombreCat = currentCategNombre.toUpperCase();
+        boolean cobroPorPeso = nombreCat.contains("FRUTA") || nombreCat.contains("VERDURA") ||
+                nombreCat.contains("CARNE") || nombreCat.contains("PESCADO");
+
+        TextInputDialog dialog = new TextInputDialog(cobroPorPeso ? "1.000" : "1");
+        dialog.setTitle("Añadir al carrito");
+        dialog.setHeaderText("Producto: " + nombreProducto);
+        dialog.setContentText(cobroPorPeso ? "Peso en Kg:" : "Cantidad:");
+
+        dialog.showAndWait().ifPresent(cantidadStr -> {
+            double precioRecuperado = 0;
+            try (java.sql.Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
+                 java.sql.PreparedStatement pstmt = conn.prepareStatement(
+                         "SELECT PRECIO_VENTA_PRODUCTO FROM PRODUCTOS WHERE UPPER(NOMBRE_PRODUCTO) = UPPER(?) AND COD_CATEGORIA = ?")) {
+                pstmt.setString(1, nombreProducto.trim());
+                pstmt.setInt(2, currentCategId);
+                try (java.sql.ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) precioRecuperado = rs.getDouble("PRECIO_VENTA_PRODUCTO");
+                }
+            } catch (java.sql.SQLException e) {
+                mostrarAlerta("Error de BD", "No se pudo obtener el precio.");
+                return;
+            }
+
+            final double precioUnitario = precioRecuperado;
+
+            try {
+                double cantIni = Double.parseDouble(cantidadStr.trim().replace(",", "."));
+                if (cantIni <= 0 || (!cobroPorPeso && cantIni % 1 != 0)) {
+                    mostrarAlerta("Error", "Cantidad no válida.");
+                    return;
+                }
+
+                double[] estadoLinea = {cantIni, cantIni * precioUnitario};
+                subtotalVenta += estadoLinea[1];
+
+                //estilo de cada línea del ticket, asi sabremos con el cursor encima en qué producto estamos
+                javafx.scene.layout.HBox linea = new javafx.scene.layout.HBox();
+                linea.setPadding(new javafx.geometry.Insets(5, 5, 5, 5));
+                linea.setStyle("-fx-cursor: hand; -fx-background-color: transparent;");
+                linea.setOnMouseEntered(e -> linea.setStyle("-fx-cursor: hand; -fx-background-color: #f0f0f0; -fx-background-radius: 5;"));
+                linea.setOnMouseExited(e -> linea.setStyle("-fx-cursor: hand; -fx-background-color: transparent;"));
+
+                //---------------línea del ticket-----------------
+                javafx.scene.control.Label lblProd = new javafx.scene.control.Label();
+                //el resto de espacio que ocupa la línea
+                javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+                javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+                //línea con producto, cantidad y precio final
+                javafx.scene.control.Label lblTotal = new javafx.scene.control.Label();
+                //---------------línea del ticket-----------------
+
+                Runnable actualizarLabels = () -> {
+                    //formato en el ticket
+                    //si va por pero se pondrá el producto y su peso con 3 decimales
+                    //si va por cantidad se pondrá la cantidad del producto
+                    String txtCant = cobroPorPeso ? String.format("%.3f kg", estadoLinea[0]).replace(",", ".") : (int)estadoLinea[0] + "x";
+                    String uni = cobroPorPeso ? "kg" : "ud";
+                    lblProd.setText(txtCant + " " + nombreProducto + String.format(" (%.2f €/%s)", precioUnitario, uni).replace(",", "."));
+                    lblTotal.setText(String.format("%.2f €", estadoLinea[1]).replace(",", "."));
+                };
+                actualizarLabels.run();
+
+                //si clicamos en el producto podremos modificarlo
+                linea.setOnMouseClicked(event -> {
+                    modificarTicket(linea, nombreProducto, precioUnitario, cobroPorPeso, estadoLinea, actualizarLabels);
+                });
+
+                linea.getChildren().addAll(lblProd, spacer, lblTotal);
+                ticketVBox.getChildren().add(linea);
+                subtotalLabel.setText(String.format("%.2f €", subtotalVenta).replace(",", "."));
+
+            } catch (NumberFormatException e) {
+                mostrarAlerta("Error", "Introduce una cantidad válida");
+            }
+        });
+    }
+    private void modificarTicket(javafx.scene.layout.HBox linea, String nombre, double precioUni, boolean porPeso, double[] estado, Runnable refresh) {
+        javafx.scene.control.Alert opciones = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        opciones.setTitle("Modificar producto");
+        opciones.setHeaderText("Producto: " + nombre);
+        opciones.setContentText("¿Qué deseas hacer con este producto?");
+
+        //opciones de modificación
+        javafx.scene.control.ButtonType btnModificar = new javafx.scene.control.ButtonType("Modificar Cantidad");
+        javafx.scene.control.ButtonType btnEliminar = new javafx.scene.control.ButtonType("Eliminar");
+        javafx.scene.control.ButtonType btnCancelar = new javafx.scene.control.ButtonType("Cancelar", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        opciones.getButtonTypes().setAll(btnModificar, btnEliminar, btnCancelar);
+
+        opciones.showAndWait().ifPresent(opcion -> {
+            if (opcion == btnEliminar) {
+                subtotalVenta -= estado[1];
+                ticketVBox.getChildren().remove(linea);
+                subtotalLabel.setText(String.format("%.2f €", Math.abs(subtotalVenta)).replace(",", "."));
+
+            } else if (opcion == btnModificar) {
+                String cantActualStr = porPeso ? String.valueOf(estado[0]) : String.valueOf((int)estado[0]);
+                TextInputDialog dialogEdit = new TextInputDialog(cantActualStr);
+                dialogEdit.setTitle("Modificar Cantidad");
+                dialogEdit.setHeaderText("Nueva cantidad para: " + nombre);
+                dialogEdit.setContentText(porPeso ? "Peso en Kg:" : "Cantidad:");
+
+                dialogEdit.showAndWait().ifPresent(nuevaCantStr -> {
+                    try {
+                        double nuevaCant = Double.parseDouble(nuevaCantStr.trim().replace(",", "."));
+                        if (nuevaCant <= 0 || (!porPeso && nuevaCant % 1 != 0)) {
+                            mostrarAlerta("Error", "Cantidad no válida.");
+                            return;
+                        }
+
+                        //actualizamos el subtotal global, restamos lo anterior y sumamos lo nuevo
+                        subtotalVenta -= estado[1];
+                        estado[0] = nuevaCant;
+                        estado[1] = nuevaCant * precioUni;
+                        subtotalVenta += estado[1];
+
+                        //actualizamos el ticket
+                        refresh.run();
+                        subtotalLabel.setText(String.format("%.2f €", subtotalVenta).replace(",", "."));
+
+                    } catch (NumberFormatException ex) {
+                        mostrarAlerta("Error", "Introduce una cantidad válida");
+                    }
+                });
+            }
+        });
     }
 }
