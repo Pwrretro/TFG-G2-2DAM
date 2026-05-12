@@ -17,7 +17,7 @@ public class InicioDeSesionControlador {
     @FXML private MFXTextField usernameField;
     @FXML private MFXPasswordField passwordField;
     @FXML private MFXButton loginButton;
-
+    @FXML private MFXButton btnConfiguracion;
 
     // Identificamos si el usuario admin existe
     private final String querryContraseña = "SELECT contrasena_usuario FROM USUARIOS WHERE NOMBRE_USUARIO = ?";
@@ -97,6 +97,8 @@ public class InicioDeSesionControlador {
                     Stage stage = (Stage) loginButton.getScene().getWindow();
                     String vistaPrincipal = "/com/grupo2_2dam/tpv_software/vistas/vista_principal.fxml";
                     CambiarVistas.cambiarVista(vistaPrincipal, stage); // Cambiar de vista
+                } else {
+                    mostrarAlerta("Error al iniciar sesión", "Usuario o contraseña incorrectos");
                 }
 
             } else {
@@ -117,5 +119,13 @@ public class InicioDeSesionControlador {
         alert.setHeaderText(null);
         alert.setContentText(contenido);
         alert.showAndWait();
+    }
+
+    public void abrirConfiguracion() throws IOException {
+        System.out.println("Abriendo configuración");
+
+        Stage stage = (Stage) btnConfiguracion.getScene().getWindow();
+        String configuracion = "/com/grupo2_2dam/tpv_software/vistas/configuracion.fxml";
+        CambiarVistas.cambiarVista(configuracion, stage); // Cambiar de vista
     }
 }

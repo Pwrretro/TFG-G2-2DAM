@@ -13,6 +13,7 @@
 
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.shape.SVGPath?>
 <BorderPane minHeight="600.0" minWidth="900.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.grupo2_2dam.tpv_software.controladores.VistaPrincipalControlador">
 
     <left>
@@ -47,16 +48,20 @@
             </VBox>
 
             <MFXScrollPane focusTraversable="false" prefHeight="318.0" prefWidth="250.0" />
-            <MFXButton fx:id="regresarButton" alignment="CENTER" onAction="#cerrar_sesion" styleClass="mfx-button, logout-button" text="⬅️" />
+            <MFXButton fx:id="regresarButton" alignment="CENTER" onAction="#cerrar_sesion" text="">
+                <graphic>
+                    <SVGPath content="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/>
+                </graphic>
+            </MFXButton>
         </VBox>
     </left>
 
     <center>
-        <VBox spacing="15.0">
+        <VBox spacing="15.0" >
             <padding><Insets bottom="20.0" left="20.0" right="20.0" top="20.0" /></padding>
             <Label styleClass="section-title" text="Categorías y Productos" />
 
-            <ScrollPane fitToWidth="true" styleClass="custom-scroll-pane">
+            <ScrollPane fitToWidth="true" styleClass="custom-scroll-pane" VBox.vgrow="ALWAYS">
                 <FlowPane fx:id="flowProductos" hgap="15.0" prefWrapLength="600.0" vgap="15.0">
 
                     <!--Botones originales-->

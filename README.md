@@ -3,11 +3,11 @@
 Marcos Bueno, Javier Tejera y Alejandro Martín
 
 ## Tecnologías
-- Firebase - Para el hosting de la base de datos
 - PostgresSQL - Base de datos
-- SpringBoot - Conexión base de datos a Java
-- Java - Lógica del programa
-- React (posibles cambios) - Front
+- AWS - RDS
+- Java - Lenguaje de programación
+- JavaFX - Framework de interfaces
+  - MaterialFX - Biblioteca de estilos
+  - FontAwesomeFX - Biblioteca de íconos
+- Firebase - Para el hosting de la base de datos
 - Jira - Gestión del proyecto
-
-## 
