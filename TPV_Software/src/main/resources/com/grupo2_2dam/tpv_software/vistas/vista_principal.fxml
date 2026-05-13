@@ -105,7 +105,7 @@
                 <Label fx:id="subtotalLabel" styleClass="subtotal-label" text="0.00 €" />
             </HBox>
 
-            <MFXButton maxWidth="Infinity" prefHeight="55.0" styleClass="mfx-button-pagar" text="Pagar" />
+            <MFXButton fx:id="btnPagar" onAction="#abrirPantallaPago" maxWidth="Infinity" prefHeight="55.0" styleClass="mfx-button-pagar" text="Pagar" />
         </VBox>
     </right>
 </BorderPane>

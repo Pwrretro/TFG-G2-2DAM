@@ -29,4 +29,13 @@ public class CambiarVistas {
         // Opcional: ajustar el tamaño de la ventana al contenido
         stage.sizeToScene();
     }
+
+    public static Object cambiarVistaConControlador(String fxmlPath, Stage stage) throws IOException {
+        FXMLLoader loader = new FXMLLoader(CambiarVistas.class.getResource(fxmlPath));
+        javafx.scene.Parent root = loader.load();
+        javafx.scene.Scene nuevaEscena = new javafx.scene.Scene(root, stage.getScene().getWidth(), stage.getScene().getHeight());
+        nuevaEscena.getStylesheets().add(CambiarVistas.class.getResource("/css/styles.css").toExternalForm());
+        stage.setScene(nuevaEscena);
+        return loader.getController();
+    }
 }

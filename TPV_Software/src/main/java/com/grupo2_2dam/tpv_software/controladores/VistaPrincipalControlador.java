@@ -1,10 +1,14 @@
 package com.grupo2_2dam.tpv_software.controladores;
 
+import com.grupo2_2dam.tpv_software.objetos.DetalleTicket;
 import com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB;
 import com.grupo2_2dam.tpv_software.util.CambiarVistas;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 
 //Liberías que se utilizaran, no tocar que luego se me olvidan xd
@@ -17,6 +21,8 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class VistaPrincipalControlador {
@@ -53,7 +59,8 @@ public class VistaPrincipalControlador {
     @FXML private javafx.scene.layout.VBox ticketVBox;
     @FXML private javafx.scene.control.Label subtotalLabel;
     private double subtotalVenta = 0.0;
-
+    @FXML private MFXButton btnPagar;
+    private ArrayList<DetalleTicket> listaProductosTicket = new ArrayList<>();
     /*
     Definimos usuario
     public void setUsuario(String nombreUsuario) {
@@ -531,6 +538,10 @@ public class VistaPrincipalControlador {
                     return;
                 }
 
+                //Listado de productos
+                DetalleTicket nuevoItem = new DetalleTicket(nombreProducto, cantIni, precioUnitario, cantIni * precioUnitario);
+                listaProductosTicket.add(nuevoItem);
+
                 double[] estadoLinea = {cantIni, cantIni * precioUnitario};
                 subtotalVenta += estadoLinea[1];
 
@@ -558,12 +569,15 @@ public class VistaPrincipalControlador {
                     String uni = cobroPorPeso ? "kg" : "ud";
                     lblProd.setText(txtCant + " " + nombreProducto + String.format(" (%.2f €/%s)", precioUnitario, uni).replace(",", "."));
                     lblTotal.setText(String.format("%.2f €", estadoLinea[1]).replace(",", "."));
+
+                    nuevoItem.setCantidad(estadoLinea[0]);
+                    nuevoItem.setTotalLinea(estadoLinea[1]);
                 };
                 actualizarLabels.run();
 
                 //si clicamos en el producto podremos modificarlo
                 linea.setOnMouseClicked(event -> {
-                    modificarTicket(linea, nombreProducto, precioUnitario, cobroPorPeso, estadoLinea, actualizarLabels);
+                    modificarTicket(linea, nuevoItem, cobroPorPeso, estadoLinea, actualizarLabels);
                 });
 
                 linea.getChildren().addAll(lblProd, spacer, lblTotal);
@@ -575,10 +589,10 @@ public class VistaPrincipalControlador {
             }
         });
     }
-    private void modificarTicket(javafx.scene.layout.HBox linea, String nombre, double precioUni, boolean porPeso, double[] estado, Runnable refresh) {
+    private void modificarTicket(javafx.scene.layout.HBox linea, DetalleTicket item, boolean porPeso, double[] estado, Runnable refresh) {
         javafx.scene.control.Alert opciones = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
         opciones.setTitle("Modificar producto");
-        opciones.setHeaderText("Producto: " + nombre);
+        opciones.setHeaderText("Producto: " + item.getNombreProducto());
         opciones.setContentText("¿Qué deseas hacer con este producto?");
 
         //opciones de modificación
@@ -590,6 +604,8 @@ public class VistaPrincipalControlador {
 
         opciones.showAndWait().ifPresent(opcion -> {
             if (opcion == btnEliminar) {
+                listaProductosTicket.remove(item);
+
                 subtotalVenta -= estado[1];
                 ticketVBox.getChildren().remove(linea);
                 subtotalLabel.setText(String.format("%.2f €", Math.abs(subtotalVenta)).replace(",", "."));
@@ -598,7 +614,7 @@ public class VistaPrincipalControlador {
                 String cantActualStr = porPeso ? String.valueOf(estado[0]) : String.valueOf((int)estado[0]);
                 TextInputDialog dialogEdit = new TextInputDialog(cantActualStr);
                 dialogEdit.setTitle("Modificar Cantidad");
-                dialogEdit.setHeaderText("Nueva cantidad para: " + nombre);
+                dialogEdit.setHeaderText("Nueva cantidad para: " + item.getNombreProducto());
                 dialogEdit.setContentText(porPeso ? "Peso en Kg:" : "Cantidad:");
 
                 dialogEdit.showAndWait().ifPresent(nuevaCantStr -> {
@@ -612,10 +628,13 @@ public class VistaPrincipalControlador {
                         //actualizamos el subtotal global, restamos lo anterior y sumamos lo nuevo
                         subtotalVenta -= estado[1];
                         estado[0] = nuevaCant;
-                        estado[1] = nuevaCant * precioUni;
+                        estado[1] = nuevaCant * item.getPrecioUnitario();
                         subtotalVenta += estado[1];
 
-                        //actualizamos el ticket
+                        //actualizamos la lista
+                        item.setCantidad(nuevaCant);
+                        item.setTotalLinea(estado[1]);
+
                         refresh.run();
                         subtotalLabel.setText(String.format("%.2f €", subtotalVenta).replace(",", "."));
 
@@ -625,5 +644,34 @@ public class VistaPrincipalControlador {
                 });
             }
         });
+    }
+
+    @FXML
+    private void abrirPantallaPago(ActionEvent event) {
+        if (subtotalVenta <= 0) {
+            mostrarAlerta("Carrito vacío", "Añade productos antes de pagar.");
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/grupo2_2dam/tpv_software/vistas/vista_pago.fxml"));
+            javafx.scene.Parent root = loader.load();
+
+            //controlador de la vista de pagos
+            VistaPagoControlador pagoController = loader.getController();
+
+            //cargamos los datos en la pantalla de pago
+            pagoController.inicializarDatos(this.listaProductosTicket, subtotalVenta, subtotalLabel.getScene());
+
+            //cambiamos la vista
+            javafx.stage.Stage stage = (javafx.stage.Stage) subtotalLabel.getScene().getWindow();
+            javafx.scene.Scene nuevaEscena = new javafx.scene.Scene(root, stage.getScene().getWidth(), stage.getScene().getHeight());
+            nuevaEscena.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            stage.setScene(nuevaEscena);
+
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+            mostrarAlerta("Error", "No se pudo cargar la vista de pago.");
+        }
     }
 }
