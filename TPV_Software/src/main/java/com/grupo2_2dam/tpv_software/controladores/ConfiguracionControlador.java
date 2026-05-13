@@ -1,13 +1,20 @@
 package com.grupo2_2dam.tpv_software.controladores;
 
+import com.grupo2_2dam.tpv_software.util.basededatos.DatosConexion;
 import com.grupo2_2dam.tpv_software.util.CambiarVistas;
+import com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB;
+import com.grupo2_2dam.tpv_software.util.tratadodetexto.HashContraseña;
+import com.grupo2_2dam.tpv_software.util.tratadodetexto.WRJSON;
 import io.github.palexdev.materialfx.controls.*;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public class ConfiguracionControlador {
 
@@ -18,6 +25,7 @@ public class ConfiguracionControlador {
     @FXML private MFXCheckbox showAllDatabasesCheck, savePasswordCheck;
     @FXML private MFXButton guardarButton, regresarBoton;
     @FXML private MFXPasswordField passwordField;
+    @FXML private MFXButton probarButton;
 
     @FXML
     public void initialize() {
@@ -42,14 +50,121 @@ public class ConfiguracionControlador {
         rbHost.setSelected(true);
     }
 
-    public void guardarConfiguracion() throws IOException {
+    private DatosConexion obtenerDatos(){
 
+        HashContraseña hc = new HashContraseña();
+        DatosConexion dc = null;
+
+        //Hacemos comprobaciones
+        int modo = rbURL.isSelected() ? 1 : 2; // 1 = URL, 2 = Host
+        String url = urlField.getText();
+        String host = hostField.getText();
+        String nombreDB = databaseField.getText();
+        String usuario = usernameField.getText();
+        String contrasena = passwordField.getText();
+
+        //Parseamos el puerto
+        int puerto;
+        try{
+            puerto = Integer.parseInt(portField.getText());
+        }catch (NumberFormatException e){
+            puerto = 5432;
+        }
+
+        try{
+            String contrasenaHasheada = hc.hashPassword(contrasena);
+
+            if (modo == 1){
+                dc = new DatosConexion(1, url, "", 0, "", contrasena, usuario);
+            }
+
+            if (modo == 2){
+                dc = new DatosConexion(2, "", host, puerto, nombreDB, contrasena, usuario);
+            }
+        }catch (Exception e){
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        return dc;
+    }
+
+    /**
+     * Guardamos la configuración hecha en la vista del configuración en un JSON
+     * @throws IOException
+     */
+    @FXML
+    private void guardarConfiguracion() throws IOException {
+
+        WRJSON wrjson = new WRJSON();
+        DatosConexion dc = obtenerDatos();
+        boolean hecho = wrjson.escribirJSON(dc);
+
+            if (hecho){
+                mostrarAlerta("Guardado correctamente", "La configuración se ha guardado correctamente.");
+            }else{
+                mostrarAlerta("Error al guardar", "Parece que hubo un error al intentar guardar los datos.");
+            }
         regresarInicioSesion();
     }
 
-    public void regresarInicioSesion() throws IOException {
+
+    /**
+     * Probamos la configuración antes de sobreescribir la configuración del JSON
+     * @return boolean para comprobar que la conexión se hizo correctamente
+     * @throws SQLException
+     */
+    @FXML
+    private boolean probarConfiguracion() throws SQLException {
+
+        ConexionDB cdb = new ConexionDB();
+        DatosConexion dc = obtenerDatos();
+        //HashContraseña hc = new HashContraseña();
+
+        Connection c = null;
+
+        try {
+
+            if (dc.getModo() == 1){
+                c = cdb.getConnectionWithURL(dc);
+            }
+
+            if (dc.getModo() == 2){
+                c = cdb.getConnectionWithHost(dc);
+            }
+
+            if (c != null && !c.isClosed()) {
+                mostrarAlerta("Conexión correcta", "Se ha conectado correctamente con la base de datos");
+                c.close();  // cerrar después de la prueba
+                return true;
+            } else {
+                mostrarAlerta("Error al conectar", "No se pudo establecer la conexión (conexión nula o cerrada)");
+            }
+
+        } catch (SQLException e) {
+            mostrarAlerta("Error al conectar", "Error de base de datos: " + e.getMessage());
+        } catch (Exception e) {
+            mostrarAlerta("Error al conectar", "Error inesperado: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Cambiar de vista a la vista inicio de sesion
+     * @throws IOException
+     */
+    @FXML
+    private void regresarInicioSesion() throws IOException {
         Stage stage = (Stage) regresarBoton.getScene().getWindow();
         String regresar = "/com/grupo2_2dam/tpv_software/vistas/inicio_de_sesion.fxml";
         CambiarVistas.cambiarVista(regresar, stage); // Cambiar de vista
+    }
+
+    // Método auxiliar para mostrar alertas
+    private void mostrarAlerta(String titulo, String mensaje) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(mensaje);
+        alert.showAndWait();
     }
 }

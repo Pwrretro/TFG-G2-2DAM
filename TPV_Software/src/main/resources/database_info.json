@@ -1,0 +1,18 @@
+{
+  "tipo": "",
+
+  "modo_url": [{
+    "url": ""
+  }],
+
+  "modo_host": [{
+    "host": "",
+    "puerto": "",
+    "bd_nombre": ""
+  }],
+
+  "datos_usuario": [{
+      "usuario": "",
+      "contrasena": ""
+    }]
+}

@@ -1,5 +1,6 @@
 package com.grupo2_2dam.tpv_software.controladores;
 
+import com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB;
 import com.grupo2_2dam.tpv_software.util.CambiarVistas;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -16,7 +17,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.*;
-import java.util.Optional;
 import java.util.UUID;
 
 public class VistaPrincipalControlador {
@@ -159,7 +159,7 @@ public class VistaPrincipalControlador {
             }
 
             String sql = "INSERT INTO CATEGORIAS (COD_CATEGORIA, NOMBRE_CATEGORIA) VALUES ((SELECT COALESCE(MAX(COD_CATEGORIA),0)+1 FROM CATEGORIAS), ?)";
-            try (Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
+            try (Connection conn = ConexionDB.getConnection();
                  PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, nombre);
                 pstmt.executeUpdate();
@@ -186,7 +186,7 @@ public class VistaPrincipalControlador {
 
             nameDialog.showAndWait().ifPresent(nuevoNombre -> {
                 String sql = "UPDATE CATEGORIAS SET NOMBRE_CATEGORIA = ? WHERE UPPER(NOMBRE_CATEGORIA) = UPPER(?)";
-                try (Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
+                try (Connection conn = ConexionDB.getConnection();
                      PreparedStatement pstmt = conn.prepareStatement(sql)) {
                     pstmt.setString(1, nuevoNombre.trim());
                     pstmt.setString(2, nombreOriginal.trim());
@@ -214,7 +214,7 @@ public class VistaPrincipalControlador {
             String sqlBorrarProductos = "DELETE FROM PRODUCTOS WHERE COD_CATEGORIA = (SELECT COD_CATEGORIA FROM CATEGORIAS WHERE UPPER(NOMBRE_CATEGORIA) = UPPER(?))";
             String sqlBorrarCat = "DELETE FROM CATEGORIAS WHERE UPPER(NOMBRE_CATEGORIA) = UPPER(?)";
 
-            try (Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection()) {
+            try (Connection conn = ConexionDB.getConnection()) {
                 conn.setAutoCommit(false); //Eliminamoas manualmente, finaliza con el commit de abajo
 
                 try (PreparedStatement pstmtProd = conn.prepareStatement(sqlBorrarProductos);
@@ -269,7 +269,7 @@ public class VistaPrincipalControlador {
                     String codProducto = "PROD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
                     String sql = "INSERT INTO PRODUCTOS (COD_PRODUCTO, NOMBRE_PRODUCTO, PRECIO_VENTA_PRODUCTO, COD_CATEGORIA) VALUES (?, ?, ?, ?)";
-                    try (Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
+                    try (Connection conn = ConexionDB.getConnection();
                          PreparedStatement pstmt = conn.prepareStatement(sql)) {
                         pstmt.setString(1, codProducto);
                         pstmt.setString(2, nombre);
@@ -313,7 +313,7 @@ public class VistaPrincipalControlador {
                         double nuevoPrecio = Double.parseDouble(precioStr.replace(",", "."));
 
                         String sql = "UPDATE PRODUCTOS SET NOMBRE_PRODUCTO = ?, PRECIO_VENTA_PRODUCTO = ? WHERE UPPER(NOMBRE_PRODUCTO) = UPPER(?) AND COD_CATEGORIA = ?";
-                        try (Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
+                        try (Connection conn = ConexionDB.getConnection();
                              PreparedStatement pstmt = conn.prepareStatement(sql)) {
                             pstmt.setString(1, nuevoNombre.trim());
                             pstmt.setDouble(2, nuevoPrecio);
@@ -344,7 +344,7 @@ public class VistaPrincipalControlador {
             }
 
             String sql = "DELETE FROM PRODUCTOS WHERE UPPER(NOMBRE_PRODUCTO) = UPPER(?) AND COD_CATEGORIA = ?";
-            try (Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
+            try (Connection conn = ConexionDB.getConnection();
                  PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, nombre.trim());
                 pstmt.setInt(2, currentCategId);
@@ -360,7 +360,7 @@ public class VistaPrincipalControlador {
     private boolean categoriaExiste(String nombreCategoria) {
         String sql = "SELECT COUNT(*) FROM CATEGORIAS WHERE UPPER(NOMBRE_CATEGORIA) = UPPER(?)";
 
-        try (java.sql.Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
+        try (java.sql.Connection conn = ConexionDB.getConnection();
              java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, nombreCategoria.trim());
@@ -379,8 +379,8 @@ public class VistaPrincipalControlador {
 
     private boolean productoExiste(String nombreProducto, int codCategoria) {
         String sql = "SELECT COUNT(*) FROM PRODUCTOS WHERE UPPER(NOMBRE_PRODUCTO) = UPPER(?) AND COD_CATEGORIA = ?";
-        try (Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, nombreProducto.trim());
             pstmt.setInt(2, codCategoria);
@@ -409,7 +409,7 @@ public class VistaPrincipalControlador {
 
         String sql = "SELECT * FROM CATEGORIAS ORDER BY COD_CATEGORIA ASC";
 
-        try (Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
+        try (Connection conn = ConexionDB.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -447,7 +447,7 @@ public class VistaPrincipalControlador {
 
         String sql = "SELECT * FROM PRODUCTOS WHERE COD_CATEGORIA = ? ORDER BY NOMBRE_PRODUCTO ASC";
 
-        try (Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
+        try (Connection conn = ConexionDB.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, currentCategId);
@@ -509,7 +509,7 @@ public class VistaPrincipalControlador {
 
         dialog.showAndWait().ifPresent(cantidadStr -> {
             double precioRecuperado = 0;
-            try (java.sql.Connection conn = com.grupo2_2dam.tpv_software.util.ConexionDB.getConnection();
+            try (java.sql.Connection conn = ConexionDB.getConnection();
                  java.sql.PreparedStatement pstmt = conn.prepareStatement(
                          "SELECT PRECIO_VENTA_PRODUCTO FROM PRODUCTOS WHERE UPPER(NOMBRE_PRODUCTO) = UPPER(?) AND COD_CATEGORIA = ?")) {
                 pstmt.setString(1, nombreProducto.trim());

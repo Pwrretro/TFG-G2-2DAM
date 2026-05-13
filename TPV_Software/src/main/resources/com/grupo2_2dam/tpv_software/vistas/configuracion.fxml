@@ -42,6 +42,9 @@
         <HBox alignment="CENTER" spacing="10.0">
             <MFXTextField fx:id="portField" />
         </HBox>
+        <HBox alignment="CENTER" spacing="10.0">
+            <MFXTextField fx:id="databaseField"/>
+        </HBox>
     </VBox>
 
     <!-- Opciones para URL (campo URL) -->
@@ -52,9 +55,7 @@
     </VBox>
 
     <!-- Base de datos -->
-    <HBox alignment="CENTER" spacing="10.0">
-        <MFXTextField fx:id="databaseField"/>
-    </HBox>
+
     <Separator />
 
     <!-- Autenticación -->
@@ -76,6 +77,7 @@
     <!-- Botones -->
     <HBox alignment="CENTER" spacing="20.0">
         <MFXButton fx:id="guardarButton" onAction="#guardarConfiguracion" text="Guardar" />
+        <MFXButton fx:id="probarButton" onAction="#probarConfiguracion" text="Probar conexión" />
         <MFXButton fx:id="regresarBoton" onAction="#regresarInicioSesion" text="Regresar" />
     </HBox>
 </VBox>

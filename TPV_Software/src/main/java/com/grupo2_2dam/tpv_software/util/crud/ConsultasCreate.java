@@ -1,7 +1,7 @@
 package com.grupo2_2dam.tpv_software.util.crud;
 
-import com.grupo2_2dam.tpv_software.util.ConexionDB;
-import com.grupo2_2dam.tpv_software.util.HashContraseña;
+import com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB;
+import com.grupo2_2dam.tpv_software.util.tratadodetexto.HashContraseña;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
