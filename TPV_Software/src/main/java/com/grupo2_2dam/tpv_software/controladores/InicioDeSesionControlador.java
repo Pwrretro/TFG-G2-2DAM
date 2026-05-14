@@ -16,7 +16,6 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.sql.SQLException;
 
 public class InicioDeSesionControlador {
 
@@ -57,57 +56,44 @@ public class InicioDeSesionControlador {
             DatosConexion dc = WRJSON.leerJSON();
             System.out.println(dc.toString());
 
-            java.sql.Connection conn = null;
-            java.sql.PreparedStatement pstmt = null;
-            java.sql.ResultSet rs = null;
+            // 1. Establecer conexión
+            java.sql.Connection conn = ConexionDB.obtenerConexion();
 
-            try{
-                // 1. Ver el tipo de conexión y establecerla
-                if (dc.getModo() == 1) {
-                    conn = ConexionDB.getConnectionWithURL(dc); //Modo url
-                } else {
-                    conn = ConexionDB.getConnectionWithHost(dc);//Modo host
-                }
 
-                // 2. Preparar y ejecutar la consulta
-                pstmt = conn.prepareStatement(querryContrasena);
-                pstmt.setString(1, username);
-                //pstmt.setString(2, password); // Obtenemos abajo las nuevas comprobaciones
+            // 2. Preparar y ejecutar la consulta
+            java.sql.PreparedStatement pstmt = conn.prepareStatement(querryContrasena);
+            pstmt.setString(1, username);
+            //pstmt.setString(2, password); // Obtenemos abajo las nuevas comprobaciones
 
-                rs = pstmt.executeQuery();
+            java.sql.ResultSet rs = pstmt.executeQuery();;
 
-                // 3. Procesar resultado
-                if (rs.next()) {
-                    String hashAlmacenado = rs.getString(1);
-                    boolean verificarPassword = HashContraseña.verifyPassword(password, hashAlmacenado);;
+            // 3. Procesar resultado
+            if (rs.next()) {
+                String hashAlmacenado = rs.getString(1);
+                boolean verificarPassword = HashContraseña.verifyPassword(password, hashAlmacenado);
 
-                    if (verificarPassword){
-                        // Obtener el Stage desde cualquier nodo (ej. loginButton)
-                        Stage stage = (Stage) loginButton.getScene().getWindow();
-                        String vistaPrincipal = "/com/grupo2_2dam/tpv_software/vistas/vista_principal.fxml";
-                        CambiarVistas.cambiarVista(vistaPrincipal, stage); // Cambiar de vista
-                    } else {
-                        mostrarAlerta("Error al iniciar sesión", "Usuario o contraseña incorrectos");
-                    }
+                if (verificarPassword){
+                    // Obtener el Stage desde cualquier nodo (ej. loginButton)
+                    Stage stage = (Stage) loginButton.getScene().getWindow();
+                    String vistaPrincipal = "/com/grupo2_2dam/tpv_software/vistas/vista_principal.fxml";
+                    CambiarVistas.cambiarVista(vistaPrincipal, stage); // Cambiar de vista
                 } else {
                     mostrarAlerta("Error al iniciar sesión", "Usuario o contraseña incorrectos");
                 }
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
-            } catch (InvalidKeySpecException e) {
-                mostrarAlerta("Error contraseña: ", "Usuario o contraseña incorrecta.");
-                return;
-            } finally {
-                if (rs != null) try { rs.close(); } catch (SQLException e) { e.printStackTrace(); }
-                if (pstmt != null) try { pstmt.close(); } catch (SQLException e) { e.printStackTrace(); }
-                if (conn != null) try { conn.close(); } catch (SQLException e) { e.printStackTrace(); }
+            } else {
+                mostrarAlerta("Error al iniciar sesión", "Usuario o contraseña incorrectos");
             }
+
 
         } catch (java.sql.SQLException e) {
             mostrarAlerta("Error de BD", "No se pudo conectar a la base de datos.");
         } catch (IOException e) {
             //Cualquier otro error
             mostrarAlerta("Error", "Hubo un error: " + e.getMessage());
+        } catch (NoSuchAlgorithmException e) {
+            mostrarAlerta("Error", e.getMessage());
+        } catch (InvalidKeySpecException e) {
+            mostrarAlerta("Error", e.getMessage());
         }
     }
 

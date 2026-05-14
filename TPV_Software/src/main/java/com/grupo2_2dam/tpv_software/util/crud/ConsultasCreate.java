@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+import static com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB.obtenerConexion;
+
 public class ConsultasCreate {
 
     //Querries para buscar el admin y para
@@ -20,7 +22,7 @@ public class ConsultasCreate {
      */
     public void createAdminUser(String usuario, String contraseña) {
 
-        try (Connection connection = ConexionDB.getConnection()) { //Obtenemos la conexión con la clase ConexionDB
+        try (Connection connection = obtenerConexion()) { //Obtenemos la conexión con la clase ConexionDB
             if (connection != null) {
                 try (ResultSet rs = connection.createStatement().executeQuery(selectAdminUser)) { //Verificamos si existe el usuario admin/admin
 

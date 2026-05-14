@@ -38,7 +38,7 @@ public class WRJSON {
             String usuario = jo.optString("usuario", "postgres");
             String contrasena = jo.optString("contrasena", "admin");
 
-            System.out.println("Lectura JSON correcta");
+            //System.out.println("Lectura JSON correcta");
             return new DatosConexion(modo, url, host, puerto, nombre, contrasena, usuario);
 
         } catch (IOException | org.json.JSONException e) {

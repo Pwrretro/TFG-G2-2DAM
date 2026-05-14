@@ -120,17 +120,9 @@ public class ConfiguracionControlador {
         DatosConexion dc = obtenerDatos();
         //HashContraseña hc = new HashContraseña();
 
-        Connection c = null;
-
         try {
 
-            if (dc.getModo() == 1){
-                c = cdb.getConnectionWithURL(dc);
-            }
-
-            if (dc.getModo() == 2){
-                c = cdb.getConnectionWithHost(dc);
-            }
+            Connection c = cdb.getConnectionWithObject(dc);
 
             if (c != null && !c.isClosed()) {
                 mostrarAlerta("Conexión correcta", "Se ha conectado correctamente con la base de datos");
