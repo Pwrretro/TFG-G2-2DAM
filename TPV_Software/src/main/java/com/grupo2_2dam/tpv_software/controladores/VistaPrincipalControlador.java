@@ -1,14 +1,13 @@
 package com.grupo2_2dam.tpv_software.controladores;
 
 import com.grupo2_2dam.tpv_software.objetos.DetalleTicket;
-import com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB;
+import com.grupo2_2dam.tpv_software.objetos.Usuario;
 import com.grupo2_2dam.tpv_software.util.CambiarVistas;
+import com.grupo2_2dam.tpv_software.util.basededatos.FuncionUsuario;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 
 //Liberías que se utilizaran, no tocar que luego se me olvidan xd
@@ -22,7 +21,6 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import static com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB.obtenerConexion;
@@ -60,21 +58,18 @@ public class VistaPrincipalControlador {
     //Ticket
     @FXML private javafx.scene.layout.VBox ticketVBox;
     @FXML private javafx.scene.control.Label subtotalLabel;
-    private double subtotalVenta = 0.0;
     @FXML private MFXButton btnPagar;
     private ArrayList<DetalleTicket> listaProductosTicket = new ArrayList<>();
-    /*
-    Definimos usuario
-    public void setUsuario(String nombreUsuario) {
 
-    }
-    */
+    private double subtotalVenta = 0.0;
 
     @FXML
     public void initialize() { // Aquí se cargaran los productos e imagenes de la base de datos
 
         //Perfil ---------------------------
-        nombre_Usuario.setText("Pawer"); //15 carácteres máximos para evitar errores
+        FuncionUsuario fu = new FuncionUsuario();
+        Usuario usuario = fu.obtenerUsuarioActual();
+        nombre_Usuario.setText(usuario.getNombre_usuario()); //15 carácteres máximos para evitar errores
 
         String imagenurl = "/imagenes/kanna.png"; // Esto hay que cambiarlo por la base de datos
         foto_de_perfil.setImage(procesarImagen(imagenurl));
@@ -409,6 +404,15 @@ public class VistaPrincipalControlador {
         alert.setTitle(titulo);
         alert.setHeaderText(null);
         alert.setContentText(contenido);
+
+        try {
+            // Obtener la ventana (Stage) interna de la alerta y añadir el icono
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
+        } catch (Exception e) {
+            System.err.println("Error al cargar el icono: " + e.getMessage());
+        }
+
         alert.showAndWait();
     }
 
@@ -674,6 +678,44 @@ public class VistaPrincipalControlador {
         } catch (java.io.IOException e) {
             e.printStackTrace();
             mostrarAlerta("Error", "No se pudo cargar la vista de pago.");
+        }
+    }
+
+    public void handleAnadirUsuario(ActionEvent actionEvent) {
+        // 1. Pedir nombre de usuario
+        TextInputDialog dialogUser = new TextInputDialog();
+        dialogUser.setTitle("Crear cuenta");
+        dialogUser.setHeaderText("Nueva cuenta");
+        dialogUser.setContentText("Nombre de usuario:");
+        dialogUser.showAndWait();  // ESPERA a que el usuario escriba y pulse OK
+
+        String nombreUsuario = dialogUser.getEditor().getText();
+        if (nombreUsuario.isEmpty()) {
+            mostrarAlerta("Error", "Debes escribir un nombre");
+            return;
+        }
+
+        // 2. Pedir contraseña
+        TextInputDialog dialogPass = new TextInputDialog();
+        dialogPass.setTitle("Contraseña");
+        dialogPass.setHeaderText("Contraseña para " + nombreUsuario);
+        dialogPass.setContentText("Contraseña:");
+        dialogPass.showAndWait();  // ESPERA
+
+        String contrasenaUsuario = dialogPass.getEditor().getText();
+        if (contrasenaUsuario.isEmpty()) {
+            mostrarAlerta("Error", "Debes escribir una contraseña");
+            return;
+        }
+
+        // 3. Crear cuenta
+        FuncionUsuario funcionUsuario = new FuncionUsuario();
+        boolean creado = funcionUsuario.crearCuenta(nombreUsuario, contrasenaUsuario);
+
+        if (creado) {
+            mostrarAlerta("Éxito", "Cuenta creada correctamente");
+        } else {
+            mostrarAlerta("Error", "Cuenta no creada. Es posible que el nombre de usuario ya exista.");
         }
     }
 }

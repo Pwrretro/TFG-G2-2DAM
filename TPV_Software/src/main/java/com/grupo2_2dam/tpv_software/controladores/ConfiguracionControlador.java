@@ -3,12 +3,13 @@ package com.grupo2_2dam.tpv_software.controladores;
 import com.grupo2_2dam.tpv_software.util.basededatos.DatosConexion;
 import com.grupo2_2dam.tpv_software.util.CambiarVistas;
 import com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB;
-import com.grupo2_2dam.tpv_software.util.tratadodetexto.HashContraseña;
+import com.grupo2_2dam.tpv_software.util.tratadodetexto.HashContrasena;
 import com.grupo2_2dam.tpv_software.util.tratadodetexto.WRJSON;
 import io.github.palexdev.materialfx.controls.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -52,7 +53,7 @@ public class ConfiguracionControlador {
 
     private DatosConexion obtenerDatos(){
 
-        HashContraseña hc = new HashContraseña();
+        HashContrasena hc = new HashContrasena();
         DatosConexion dc = null;
 
         //Hacemos comprobaciones
@@ -97,7 +98,7 @@ public class ConfiguracionControlador {
 
         WRJSON wrjson = new WRJSON();
         DatosConexion dc = obtenerDatos();
-        boolean hecho = wrjson.escribirJSON(dc);
+        boolean hecho = wrjson.escribirJSONBaseDeDatos(dc);
 
             if (hecho){
                 mostrarAlerta("Guardado correctamente", "La configuración se ha guardado correctamente.");
@@ -157,6 +158,15 @@ public class ConfiguracionControlador {
         alert.setTitle(titulo);
         alert.setHeaderText(null);
         alert.setContentText(mensaje);
+
+        try {
+            // Obtener la ventana (Stage) interna de la alerta y añadir el icono
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
+        } catch (Exception e) {
+            System.err.println("Error al cargar el icono: " + e.getMessage());
+        }
+
         alert.showAndWait();
     }
 }

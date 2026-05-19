@@ -2,11 +2,13 @@ package com.grupo2_2dam.tpv_software.controladores;
 
 import com.grupo2_2dam.tpv_software.objetos.DetalleTicket;
 import com.grupo2_2dam.tpv_software.util.CambiarVistas;
+import com.grupo2_2dam.tpv_software.util.basededatos.FuncionUsuario;
 import io.github.palexdev.materialfx.controls.MFXButton;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -84,7 +86,9 @@ public class VistaPagoControlador {
             //pasamos los parámetros necesarios
             Map<String, Object> parametros = new HashMap<>();
             parametros.put("TOTAL_FACTURA", totalVenta);
-            parametros.put("CAJERO", "Admin"); //a futuro pasaremos por paámetro el user logeado
+
+            FuncionUsuario fu = new FuncionUsuario();
+            parametros.put("CAJERO", fu.obtenerUsuarioActual().getNombre_usuario()); //Obtenemos el nombre del usuario actual del JSON
 
             //recibimos la lista de productos
             JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(listaRecibida);
@@ -132,6 +136,15 @@ public class VistaPagoControlador {
         alerta.setTitle(titulo);
         alerta.setHeaderText(null);
         alerta.setContentText(contenido);
+
+        try {
+            // Obtener la ventana (Stage) interna de la alerta y añadir el icono
+            Stage stage = (Stage) alerta.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
+        } catch (Exception e) {
+            System.err.println("Error al cargar el icono: " + e.getMessage());
+        }
+
         alerta.showAndWait();
     }
 

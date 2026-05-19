@@ -7,7 +7,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 
-public class HashContraseña {
+public class HashContrasena {
 
     // Recomendado por internet para PBKDF2
     private static final int ITERATIONS = 100000;

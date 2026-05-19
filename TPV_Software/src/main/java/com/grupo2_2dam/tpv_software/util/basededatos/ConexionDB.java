@@ -34,7 +34,7 @@ public class ConexionDB {
     }
 
     public static Connection obtenerConexion() throws SQLException {
-        DatosConexion dc = WRJSON.leerJSON();
+        DatosConexion dc = WRJSON.leerJSONBaseDeDatos();
         return ConexionDB.getConnectionWithObject(dc);
     }
 

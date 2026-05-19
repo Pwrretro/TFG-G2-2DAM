@@ -1,7 +1,6 @@
 package com.grupo2_2dam.tpv_software.util.crud;
 
-import com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB;
-import com.grupo2_2dam.tpv_software.util.tratadodetexto.HashContraseña;
+import com.grupo2_2dam.tpv_software.util.tratadodetexto.HashContrasena;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,9 +17,9 @@ public class ConsultasCreate {
     /**
      * Método para crear usuarios en la base de datos
      * @param usuario nombre de usuario
-     * @param contraseña contraseña del usuario
+     * @param contrasena contraseña del usuario
      */
-    public void createAdminUser(String usuario, String contraseña) {
+    public void createAdminUser(String usuario, String contrasena) {
 
         try (Connection connection = obtenerConexion()) { //Obtenemos la conexión con la clase ConexionDB
             if (connection != null) {
@@ -31,7 +30,7 @@ public class ConsultasCreate {
                     if (!existeAdmin) { //Si existe procedemos a crearlo
 
                         //Hasheamos las contraseñas
-                        String contraseñaHasheada = HashContraseña.hashPassword(contraseña);
+                        String contraseñaHasheada = HashContrasena.hashPassword(contrasena);
 
                         //Ejecutamos el querry
                         try (PreparedStatement ps = connection.prepareStatement(createUserAdmin)) {

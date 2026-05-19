@@ -4,11 +4,28 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.Label?>
+
+
 
 <VBox alignment="CENTER" prefHeight="400.0" prefWidth="600.0" spacing="20.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.grupo2_2dam.tpv_software.controladores.InicioDeSesionControlador">
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
     </padding>
+
+    <VBox alignment="CENTER" spacing="10.0">
+        <!-- Logo o título de la aplicación -->
+        <StackPane alignment="CENTER">
+            <ImageView fitWidth="90" fitHeight="90" preserveRatio="true" fx:id="icono_imagen">
+                <clip>
+                    <Circle radius="45" centerX="45" centerY="45"/>
+                </clip>
+            </ImageView>
+        </StackPane>
+
+        <Label text="PurpleBox" styleClass="titulo-login" />
+    </VBox>
 
     <MFXTextField fx:id="usernameField" />
     <MFXPasswordField fx:id="passwordField" />
@@ -21,5 +38,4 @@
             </graphic>
         </MFXButton>
     </HBox>
-
 </VBox>
