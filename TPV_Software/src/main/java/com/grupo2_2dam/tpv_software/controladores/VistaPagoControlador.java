@@ -35,7 +35,7 @@ public class VistaPagoControlador {
     private double totalVenta;
     private javafx.scene.Scene escenaAnterior;
 
-    //se llamado desde el controlador principal antes de mostrar la escena para cargas los datos
+    //Se ha llamado desde el controlador principal antes de mostrar la escena para cargas los datos
     public void inicializarDatos(List<DetalleTicket> lista, double total, javafx.scene.Scene escenaAnterior) {
         this.listaRecibida = lista;
         this.totalVenta = total;
