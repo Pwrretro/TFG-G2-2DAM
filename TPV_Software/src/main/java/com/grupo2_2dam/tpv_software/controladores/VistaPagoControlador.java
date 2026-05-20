@@ -97,8 +97,14 @@ public class VistaPagoControlador {
             JasperPrint print = JasperFillManager.fillReport(reporte, parametros, ds);
 
             //lo guardamos en una carpeta del equipo
+            /** Cambio para guardar en desktop
             String nombreArchivo = "Factura_" + System.currentTimeMillis() + ".pdf";
             String ruta = System.getProperty("user.home") + File.separator + nombreArchivo;
+            JasperExportManager.exportReportToPdfFile(print, ruta);
+             **/
+            String desktopPath = System.getProperty("user.home") + File.separator + "Desktop";
+            String nombreArchivo = "Factura_" + System.currentTimeMillis() + ".pdf";
+            String ruta = desktopPath + File.separator + nombreArchivo;
             JasperExportManager.exportReportToPdfFile(print, ruta);
 
             //creamos el pdf
