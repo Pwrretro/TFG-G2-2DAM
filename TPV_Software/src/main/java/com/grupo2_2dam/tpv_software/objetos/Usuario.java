@@ -6,6 +6,12 @@ public class Usuario {
     String nombre_usuario;
     String contrasena_usuario;
 
+    /**
+     * Usuario con su código de usuario, nombre de usuario y contraseña de usuario
+     * @param cod_usuario
+     * @param nombre_usuario
+     * @param contrasena_usuario
+     */
     public Usuario(int cod_usuario, String nombre_usuario, String contrasena_usuario) {
         this.cod_usuario = cod_usuario;
         this.nombre_usuario = nombre_usuario;

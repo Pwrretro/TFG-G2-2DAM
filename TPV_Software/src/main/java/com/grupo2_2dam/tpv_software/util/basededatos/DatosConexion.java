@@ -13,9 +13,19 @@ public class DatosConexion {
     int puerto;
     String nombre;
 
-    //Datos usuario
+    //Datos Usuario
     String contrasena, usuario;
 
+    /**
+     * Datos de conexión con modo, url, host, puerto, nombre, contraseña y usuario
+     * @param modo
+     * @param url
+     * @param host
+     * @param puerto
+     * @param nombre
+     * @param contrasena
+     * @param usuario
+     */
     public DatosConexion(int modo, String url, String host, int puerto, String nombre, String contrasena, String usuario) {
         this.modo = modo;
         this.url = url;

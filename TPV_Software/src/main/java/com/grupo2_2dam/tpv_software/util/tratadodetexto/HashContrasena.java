@@ -14,6 +14,13 @@ public class HashContrasena {
     private static final int KEY_LENGTH = 256;
     private static final String ALGORITHM = "PBKDF2WithHmacSHA256";
 
+    /**
+     * Hash de la contraseña utilizando PBKDF2 con una salt aleatoria y un número de iteraciones
+     * @param password
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     */
     public static String hashPassword(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
 
         // Generar una salt aleatoria de 16 bytes
@@ -33,6 +40,14 @@ public class HashContrasena {
         return ITERATIONS + ":" + saltBase64 + ":" + hashBase64;
     }
 
+    /**
+     * Verificar la contraseña comparando el hash almacenado con el hash de la contraseña proporcionada, utilizando los mismos parámetros de salt y iteraciones
+     * @param password
+     * @param storedHash
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     */
     public static boolean verifyPassword(String password, String storedHash)
             throws NoSuchAlgorithmException, InvalidKeySpecException {
 
@@ -55,6 +70,12 @@ public class HashContrasena {
         return constantTimeEquals(originalHash, newHash);
     }
 
+    /**
+     * Contante timeEquals para evitar ataques de timing, comparando byte a byte sin salir antes de comparar todo el array
+     * @param a
+     * @param b
+     * @return
+     */
     private static boolean constantTimeEquals(byte[] a, byte[] b) {
         if (a.length != b.length) {
             return false;
@@ -66,3 +87,30 @@ public class HashContrasena {
         return result == 0;
     }
 }
+
+/*
+ * Funcionamiento de la clase util/HashContraseña
+ */
+//public class Main {
+//    public static void main(String[] args) {
+//        try {
+//            // 1. Registras un usuario: generar un hash y guarda en DB
+//            String password = "contraseña123";
+//            String hash = PasswordHasher.hashPassword(password);
+//            System.out.println("Hash que se guarda en DB: " + hash);
+//
+//            // 2. Validar login: comparar contraseña con el hash
+//            String passwordIngresada = "contraseña123";
+//            boolean esCorrecta = PasswordHasher.verifyPassword(passwordIngresada, hash);
+//            System.out.println("Contraseña correcta " + esCorrecta);
+//
+//            // Prueba contraseña incorrecta
+//            String passwordIncorrecta = "Contrasena1234";
+//            boolean esIncorrecta = PasswordHasher.verifyPassword(passwordIncorrecta, hash);
+//            System.out.println("Contraseña incorrecta " + esIncorrecta);
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
+//}

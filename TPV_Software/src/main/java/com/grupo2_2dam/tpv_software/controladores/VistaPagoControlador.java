@@ -35,6 +35,12 @@ public class VistaPagoControlador {
     private double totalVenta;
     private javafx.scene.Scene escenaAnterior;
 
+    /**
+     * Inicializar la vista de pago con la lista de productos, el total de la venta y la escena anterior para poder volver a ella sin perder los datos introducidos
+     * @param lista
+     * @param total
+     * @param escenaAnterior
+     */
     //Se ha llamado desde el controlador principal antes de mostrar la escena para cargas los datos
     public void inicializarDatos(List<DetalleTicket> lista, double total, javafx.scene.Scene escenaAnterior) {
         this.listaRecibida = lista;
@@ -75,6 +81,9 @@ public class VistaPagoControlador {
         }
     }
 
+    /**
+     * Finalizar la venta generando un PDF con JasperReports, guardándolo en el escritorio del usuario y abriéndolo automáticamente, además de mostrar una alerta de confirmación y volver a la pantalla principal
+     */
     @FXML
     private void finalizarVentaGenerarPDF() {
         try {
@@ -132,11 +141,21 @@ public class VistaPagoControlador {
         }
     }
 
+    /**
+     * Volver a la pantalla principal sin perder los datos introducidos, ya que se ha guardado la escena principal al abrir la vista de pago, por lo que volvemos a esa escena sin necesidad de recargarla ni perder los datos introducidos
+     * @param event
+     */
     @FXML
     private void volverAlTPV(ActionEvent event) {
         javafx.stage.Stage stage = (javafx.stage.Stage) btnVolver.getScene().getWindow();
         stage.setScene(escenaAnterior);
     }
+
+    /**
+     * Mostrar una alerta con el título y contenido especificados, además de añadir un icono personalizado a la ventana de la alerta
+     * @param titulo
+     * @param contenido
+     */
     private void mostrarAlerta(String titulo, String contenido) {
         javafx.scene.control.Alert alerta = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
         alerta.setTitle(titulo);

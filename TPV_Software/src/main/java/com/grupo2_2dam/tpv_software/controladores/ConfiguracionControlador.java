@@ -12,7 +12,6 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -28,6 +27,9 @@ public class ConfiguracionControlador {
     @FXML private MFXPasswordField passwordField;
     @FXML private MFXButton probarButton;
 
+    /**
+     * Inicializar la vista de configuración, estableciendo los textos flotantes y la lógica para mostrar/ocultar las opciones según el tipo de conexión seleccionado
+     */
     @FXML
     public void initialize() {
 
@@ -51,6 +53,10 @@ public class ConfiguracionControlador {
         rbHost.setSelected(true);
     }
 
+    /**
+     * Obtenemos los datos de la vista y los guardamos en un objeto DatosConexion para luego usarlo tanto para probar la conexión como para guardarlo en el JSON
+     * @return
+     */
     private DatosConexion obtenerDatos(){
 
         HashContrasena hc = new HashContrasena();
@@ -90,7 +96,7 @@ public class ConfiguracionControlador {
     }
 
     /**
-     * Guardamos la configuración hecha en la vista del configuración en un JSON
+     * Guardamos la configuración hecha en la vista de la configuración en un JSON
      * @throws IOException
      */
     @FXML

@@ -63,8 +63,11 @@ public class VistaPrincipalControlador {
 
     private double subtotalVenta = 0.0;
 
+    /**
+     * Inicializar la vista principal, cargando el perfil del usuario actual y las categorías de productos desde la base de datos, además de establecer la lógica para los botones laterales de añadir, modificar y eliminar tanto categorías como productos dependiendo del panel en el que estemos
+     */
     @FXML
-    public void initialize() { // Aquí se cargaran los productos e imagenes de la base de datos
+    public void initialize() { // Aquí se cargan los productos e imagenes de la base de datos
 
         //Perfil ---------------------------
         FuncionUsuario fu = new FuncionUsuario();
@@ -90,6 +93,11 @@ public class VistaPrincipalControlador {
         //Categorías ----------------------
     }
 
+    /**
+     * Cerrar sesión volviendo a la vista de inicio de sesión, eliminando el usuario actual del JSON para que no se pueda usar en otras vistas sin loguearse de nuevo y mostrando una alerta de confirmación
+     * @param actionEvent
+     * @throws IOException
+     */
     public void cerrar_sesion(ActionEvent actionEvent) throws IOException {
         Stage stage = (Stage) regresarButton.getScene().getWindow();
         String vistaPrincipal = "/com/grupo2_2dam/tpv_software/vistas/inicio_de_sesion.fxml";
@@ -126,6 +134,9 @@ public class VistaPrincipalControlador {
     }
 
 
+    /**
+     * Handlers para los botones de añadir, modificar y eliminar, que dependiendo del panel en el que estemos (categorías o productos) llamarán a la función correspondiente para realizar la acción deseada
+     */
     //------------------------------------CATEGORÍA-------------------------------------
     @FXML
     private void handleAdd() {
@@ -145,6 +156,9 @@ public class VistaPrincipalControlador {
         else eliminarProducto();
     }
 
+    /**
+     * Añadir una nueva categoría a la base de datos, comprobando que el nombre no esté vacío ni exista ya, y recargando las categorías para mostrar la nueva categoría añadida, además de mostrar alertas en caso de error
+     */
     //------------------------------------CATEGORÍA-------------------------------------
     private void addCategoria() {
         TextInputDialog dialog = new TextInputDialog();
@@ -174,6 +188,9 @@ public class VistaPrincipalControlador {
         });
     }
 
+    /**
+     * Modificar el nombre de una categoría existente en la base de datos, comprobando que el nombre original exista y que el nuevo nombre no esté vacío ni exista ya, y recargando las categorías para mostrar el cambio, además de mostrar alertas en caso de error
+     */
     private void modificarCategoria() {
         TextInputDialog idDialog = new TextInputDialog();
         idDialog.setTitle("Modificar Categoría");
@@ -203,6 +220,9 @@ public class VistaPrincipalControlador {
         });
     }
 
+    /**
+     * Eliminar una categoría existente en la base de datos, comprobando que el nombre exista, y recargando las categorías para mostrar el cambio, además de mostrar alertas en caso de error. Se borrarán también todos los productos asociados a esa categoría, y si alguno de esos productos tiene ventas, movimientos o líneas de venta asociadas, no se podrá eliminar la categoría ni los productos asociados, mostrando una alerta informativa al usuario
+     */
     private void eliminarCategoria() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Eliminar Categoría");
@@ -243,6 +263,9 @@ public class VistaPrincipalControlador {
     }
     //------------------------------------CATEGORÍA-------------------------------------
 
+    /**
+     * Añadir un nuevo producto a la categoría actual en la base de datos, comprobando que el nombre no esté vacío ni exista ya en esa categoría, y recargando los productos para mostrar el nuevo producto añadido, además de mostrar alertas en caso de error. Se pedirá también el precio del producto al añadirlo, comprobando que sea un número válido
+     */
     //------------------------------------PRODUCTOS-------------------------------------
     private void addProducto() {
         TextInputDialog dialog = new TextInputDialog();
@@ -269,7 +292,7 @@ public class VistaPrincipalControlador {
                 try {
                     double precio = Double.parseDouble(precioStr.replace(",", "."));
 
-                    //Generamos un id para el producto creado
+                    //Generamos id para el producto creado
                     String codProducto = "PROD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
                     String sql = "INSERT INTO PRODUCTOS (COD_PRODUCTO, NOMBRE_PRODUCTO, PRECIO_VENTA_PRODUCTO, COD_CATEGORIA) VALUES (?, ?, ?, ?)";
@@ -292,6 +315,9 @@ public class VistaPrincipalControlador {
         });
     }
 
+    /**
+     * Modificar el nombre y precio de un producto existente en la base de datos, comprobando que el nombre original exista en esa categoría y que el nuevo nombre no esté vacío ni exista ya en esa categoría, y recargando los productos para mostrar el cambio, además de mostrar alertas en caso de error. Se pedirá también el nuevo precio del producto al modificarlo, comprobando que sea un número válido
+     */
     private void modificarProducto() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Modificar Producto");
@@ -336,6 +362,9 @@ public class VistaPrincipalControlador {
         });
     }
 
+    /**
+     * Eliminar un producto existente en la base de datos, comprobando que el nombre exista en esa categoría, y recargando los productos para mostrar el cambio, además de mostrar alertas en caso de error. Si el producto tiene ventas, movimientos o líneas de venta asociadas, no se podrá eliminar el producto, mostrando una alerta informativa al usuario
+     */
     private void eliminarProducto() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Eliminar Producto");
@@ -361,6 +390,11 @@ public class VistaPrincipalControlador {
     }
     //------------------------------------PRODUCTOS-------------------------------------
 
+    /**
+     * Categoria Existe: Método auxiliar para comprobar si una categoría existe en la base de datos, comparando el nombre de la categoría de forma insensible a mayúsculas y espacios al inicio o final, y devolviendo true si existe o false si no existe, mostrando una alerta en caso de error de conexión a la base de datos
+     * @param nombreCategoria
+     * @return
+     */
     private boolean categoriaExiste(String nombreCategoria) {
         String sql = "SELECT COUNT(*) FROM CATEGORIAS WHERE UPPER(NOMBRE_CATEGORIA) = UPPER(?)";
 
@@ -381,6 +415,12 @@ public class VistaPrincipalControlador {
         return false;
     }
 
+    /**
+     * Producto Existe: Método auxiliar para comprobar si un producto existe en la base de datos dentro de una categoría, comparando el nombre del producto de forma insensible a mayúsculas y espacios al inicio o final, y devolviendo true si existe o false si no existe, mostrando una alerta en caso de error de conexión a la base de datos
+     * @param nombreProducto
+     * @param codCategoria
+     * @return
+     */
     private boolean productoExiste(String nombreProducto, int codCategoria) {
         String sql = "SELECT COUNT(*) FROM PRODUCTOS WHERE UPPER(NOMBRE_PRODUCTO) = UPPER(?) AND COD_CATEGORIA = ?";
         try (Connection conn = obtenerConexion();
@@ -398,6 +438,11 @@ public class VistaPrincipalControlador {
         return false;
     }
 
+    /**
+     * Mostrar Alerta: Método auxiliar para mostrar una alerta de error con un título y contenido personalizado, añadiendo el icono del TPV a la ventana de la alerta, y mostrando la alerta hasta que el usuario la cierre
+     * @param titulo
+     * @param contenido
+     */
     //Mensaje informativo auxiliar
     private void mostrarAlerta(String titulo, String contenido) {
         javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
@@ -416,6 +461,9 @@ public class VistaPrincipalControlador {
         alert.showAndWait();
     }
 
+    /**
+     * Cargar Categorías y Productos: Método para cargar las categorías o productos desde la base de datos dependiendo del panel en el que estemos, creando dinámicamente botones para cada categoría o producto con su nombre, añadiendo estilos personalizados a los botones, y estableciendo la lógica para cambiar entre panel de categorías y productos al hacer clic en los botones, además de mostrar alertas en caso de error de conexión a la base de datos
+     */
     @FXML
     private void cargarCategorias() {
         flowProductos.getChildren().clear();
@@ -448,6 +496,9 @@ public class VistaPrincipalControlador {
         }
     }
 
+    /**
+     * Cargar productos: Método para cargar los productos de la categoría seleccionada desde la base de datos, creando dinámicamente botones para cada producto con su nombre, añadiendo estilos personalizados a los botones, y estableciendo la lógica para añadir el producto al ticket al hacer clic en el botón del producto, además de mostrar alertas en caso de error de conexión a la base de datos
+     */
     private void cargarProductos() {
         flowProductos.getChildren().clear();
 
@@ -497,6 +548,11 @@ public class VistaPrincipalControlador {
         cargarCategorias();
     }
 
+    /**
+     * Cambiar a modo productos: Método para cambiar al panel de productos de una categoría, guardando el id y nombre de la categoría seleccionada en variables de estado para usarlas en otras funciones, cambiando el texto de los botones laterales para reflejar que ahora se está en el panel de productos, y llamando a la función de cargar productos para mostrar los productos de la categoría seleccionada, además de mostrar alertas en caso de error de conexión a la base de datos
+     * @param codCategoria
+     * @param nombreCategoria
+     */
     private void cambiarModoProductos(int codCategoria, String nombreCategoria) {
         panelCategorias = false;
         currentCategId = codCategoria;
@@ -510,6 +566,10 @@ public class VistaPrincipalControlador {
         cargarProductos();
     }
 
+    /**
+     * Agreagar al ticket: Método para añadir un producto al ticket de venta, mostrando un diálogo para introducir la cantidad o peso del producto dependiendo de la categoría a la que pertenezca el producto (si es una categoría de peso se pedirá el peso en kg, si no se pedirá la cantidad en unidades), comprobando que el valor introducido sea válido (un número positivo, y si es por cantidad que sea un entero), recuperando el precio del producto desde la base de datos, calculando el total de la línea y actualizando el subtotal de la venta, añadiendo una nueva línea al ticket con el formato adecuado para mostrar el producto, cantidad/peso, precio unitario y total de la línea, y estableciendo la lógica para modificar o eliminar el producto del ticket al hacer clic en la línea del ticket correspondiente, además de mostrar alertas en caso de error de conexión a la base de datos o si el valor introducido no es válido
+     * @param nombreProducto
+     */
     private void agregarAlTicket(String nombreProducto) {
         String nombreCat = currentCategNombre.toUpperCase();
         boolean cobroPorPeso = nombreCat.contains("FRUTA") || nombreCat.contains("VERDURA") ||
@@ -569,7 +629,7 @@ public class VistaPrincipalControlador {
 
                 Runnable actualizarLabels = () -> {
                     //formato en el ticket
-                    //si va por pero se pondrá el producto y su peso con 3 decimales
+                    //si va por peso se pondrá el producto y su peso con 3 decimales
                     //si va por cantidad se pondrá la cantidad del producto
                     String txtCant = cobroPorPeso ? String.format("%.3f kg", estadoLinea[0]).replace(",", ".") : (int)estadoLinea[0] + "x";
                     String uni = cobroPorPeso ? "kg" : "ud";
@@ -595,6 +655,15 @@ public class VistaPrincipalControlador {
             }
         });
     }
+
+    /**
+     * Modificar ticket: Método para modificar un producto ya añadido al ticket, mostrando una alerta con opciones para modificar la cantidad/peso o eliminar el producto del ticket, y dependiendo de la opción elegida mostrando un diálogo para introducir la nueva cantidad/peso o eliminando el producto directamente, comprobando que el valor introducido sea válido (un número positivo, y si es por cantidad que sea un entero), actualizando el subtotal de la venta, actualizando la línea del ticket correspondiente con el nuevo formato adecuado para mostrar el producto, cantidad/peso, precio unitario y total de la línea, o eliminando la línea del ticket si se ha elegido eliminar, además de mostrar alertas en caso de error si el valor introducido no es válido
+     * @param linea
+     * @param item
+     * @param porPeso
+     * @param estado
+     * @param refresh
+     */
     private void modificarTicket(javafx.scene.layout.HBox linea, DetalleTicket item, boolean porPeso, double[] estado, Runnable refresh) {
         javafx.scene.control.Alert opciones = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
         opciones.setTitle("Modificar producto");
@@ -652,6 +721,10 @@ public class VistaPrincipalControlador {
         });
     }
 
+    /**
+     * Abrir pantalla de pago: Método para abrir la pantalla de pago al hacer clic en el botón de pagar, comprobando que el subtotal de la venta sea mayor a 0 (que haya productos añadidos al ticket) antes de abrir la pantalla de pago, y mostrando una alerta informativa si se intenta pagar con el carrito vacío. Si el carrito no está vacío, se carga la vista de pago desde su archivo FXML, se obtiene el controlador de la vista de pago para pasarle los datos necesarios (lista de productos del ticket, subtotal de la venta y la escena actual para poder volver a ella), y se cambia la escena actual por la escena de pago, aplicando también la hoja de estilos CSS para mantener el estilo visual consistente, además de mostrar alertas en caso de error al cargar la vista de pago
+     * @param event
+     */
     @FXML
     private void abrirPantallaPago(ActionEvent event) {
         if (subtotalVenta <= 0) {
@@ -681,6 +754,10 @@ public class VistaPrincipalControlador {
         }
     }
 
+    /**
+     * Handler Añadir Usuario: Método para manejar el evento de añadir un nuevo usuario al sistema, mostrando un diálogo para introducir el nombre de usuario y otro para introducir la contraseña, comprobando que ambos valores no estén vacíos, y llamando a la función de crear cuenta del modelo de usuario para intentar crear la cuenta con los datos introducidos, mostrando una alerta informativa si la cuenta se ha creado correctamente o si ha habido un error (por ejemplo, si el nombre de usuario ya existe)
+     * @param actionEvent
+     */
     public void handleAnadirUsuario(ActionEvent actionEvent) {
         // 1. Pedir nombre de usuario
         TextInputDialog dialogUser = new TextInputDialog();

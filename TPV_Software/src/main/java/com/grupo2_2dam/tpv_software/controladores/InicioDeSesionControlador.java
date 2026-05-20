@@ -32,6 +32,9 @@ public class InicioDeSesionControlador {
     // Identificamos si el usuario admin existe
     private final String querryContrasena = "SELECT cod_usuario, contrasena_usuario FROM USUARIOS WHERE NOMBRE_USUARIO = ?";
 
+    /**
+     * Inicializar la vista de inicio de sesión, estableciendo el icono y los textos flotantes, además de crear el usuario admin si no existe en la base de datos
+     */
     @FXML
     public void initialize() {
 
@@ -48,6 +51,9 @@ public class InicioDeSesionControlador {
         passwordField.setFloatingText("Contraseña");
     }
 
+    /**
+     * Logueo con el usuario y contraseña introducidos, comprobando que no estén vacíos y que coincidan con los datos de la base de datos, mostrando una alerta en caso de error y cambiando a la vista principal en caso de éxito
+     */
     @FXML
     private void handleLogin() { //método en el que compararemos los campos que hay en los Field con el
 
@@ -111,6 +117,11 @@ public class InicioDeSesionControlador {
         }
     }
 
+    /**
+     * Alerta para mostrar errores o información al usuario, con un icono personalizado
+     * @param titulo
+     * @param contenido
+     */
     private void mostrarAlerta(String titulo, String contenido) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(titulo);
@@ -128,6 +139,10 @@ public class InicioDeSesionControlador {
         alert.showAndWait();
     }
 
+    /**
+     * Abrir la vista de configuración, donde se pueden modificar los datos de conexión a la base de datos
+     * @throws IOException
+     */
     public void abrirConfiguracion() throws IOException {
         Stage stage = (Stage) btnConfiguracion.getScene().getWindow();
         String configuracion = "/com/grupo2_2dam/tpv_software/vistas/configuracion.fxml";

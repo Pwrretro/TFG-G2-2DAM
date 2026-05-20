@@ -11,7 +11,7 @@ public class ConexionDB {
     /*
     private static final String URL = "jdbc:postgresql://localhost:5432/tpv";
     private static final String USER = "postgres";
-    private static final String PASSWORD = "admin"; //Lo cambiamos a cada rato y estoy hasta la polla 😭😭😭😭😭😭😭
+    private static final String PASSWORD = "admin"; //Lo cambiamos a cada rato 😭😭😭😭😭😭😭
 
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
@@ -27,12 +27,17 @@ public class ConexionDB {
         }
 
         if (dc.getModo() == 2){
-            url = "jdbc:postgresql://" + dc.getHost() + ":" + dc.getPuerto() + "/" +dc.getNombre();
+            url = "jdbc:postgresql://" + dc.getHost() + ":" + dc.getPuerto() + "/" + dc.getNombre();
         }
 
         return DriverManager.getConnection(url, dc.getUsuario(), dc.getContrasena());
     }
 
+    /**
+     * Obtener conexion con la base de datos leyendo el JSON con los datos de conexión
+     * @return
+     * @throws SQLException
+     */
     public static Connection obtenerConexion() throws SQLException {
         DatosConexion dc = WRJSON.leerJSONBaseDeDatos();
         return ConexionDB.getConnectionWithObject(dc);

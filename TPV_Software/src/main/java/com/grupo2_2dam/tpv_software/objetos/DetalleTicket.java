@@ -6,6 +6,13 @@ public class DetalleTicket {
     private double precioUnitario;
     private double totalLinea;
 
+    /**
+     * Detalle del ticket, con el nombre del producto, la cantidad, el precio unitario y el total de la línea
+     * @param nombreProducto
+     * @param cantidad
+     * @param precioUnitario
+     * @param totalLinea
+     */
     public DetalleTicket(String nombreProducto, double cantidad, double precioUnitario, double totalLinea) {
         this.nombreProducto = nombreProducto;
         this.cantidad = cantidad;

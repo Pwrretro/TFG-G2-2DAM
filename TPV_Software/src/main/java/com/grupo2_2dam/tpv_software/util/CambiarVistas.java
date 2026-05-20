@@ -9,6 +9,12 @@ import java.io.IOException;
 
 public class CambiarVistas {
 
+    /**
+     * Cambiar la vista actual a una nueva vista definida por el archivo FXML, manteniendo el mismo tamaño de la ventana y reaplicando la hoja de estilos CSS
+     * @param fxmlPath
+     * @param stage
+     * @throws IOException
+     */
     public static void cambiarVista(String fxmlPath, Stage stage) throws IOException {
 
         // Cargar el FXML
