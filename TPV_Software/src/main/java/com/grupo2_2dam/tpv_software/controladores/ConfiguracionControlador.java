@@ -1,5 +1,6 @@
 package com.grupo2_2dam.tpv_software.controladores;
 
+import com.grupo2_2dam.tpv_software.util.Alertas;
 import com.grupo2_2dam.tpv_software.util.basededatos.DatosConexion;
 import com.grupo2_2dam.tpv_software.util.CambiarVistas;
 import com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB;
@@ -26,6 +27,8 @@ public class ConfiguracionControlador {
     @FXML private MFXButton guardarButton, regresarBoton;
     @FXML private MFXPasswordField passwordField;
     @FXML private MFXButton probarButton;
+
+    Alertas alertas = new Alertas();
 
     /**
      * Inicializar la vista de configuración, estableciendo los textos flotantes y la lógica para mostrar/ocultar las opciones según el tipo de conexión seleccionado
@@ -107,9 +110,10 @@ public class ConfiguracionControlador {
         boolean hecho = wrjson.escribirJSONBaseDeDatos(dc);
 
             if (hecho){
-                mostrarAlerta("Guardado correctamente", "La configuración se ha guardado correctamente.");
+                alertas.mostrarAlerta("Guardado correctamente", "La configuración se ha guardado correctamente.");
+
             }else{
-                mostrarAlerta("Error al guardar", "Parece que hubo un error al intentar guardar los datos.");
+                alertas.mostrarAlerta("Error al guardar", "Parece que hubo un error al intentar guardar los datos.");
             }
         regresarInicioSesion();
     }
@@ -132,17 +136,17 @@ public class ConfiguracionControlador {
             Connection c = cdb.getConnectionWithObject(dc);
 
             if (c != null && !c.isClosed()) {
-                mostrarAlerta("Conexión correcta", "Se ha conectado correctamente con la base de datos");
+                alertas.mostrarAlerta("Conexión correcta", "Se ha conectado correctamente con la base de datos");
                 c.close();  // cerrar después de la prueba
                 return true;
             } else {
-                mostrarAlerta("Error al conectar", "No se pudo establecer la conexión (conexión nula o cerrada)");
+                alertas.mostrarAlerta("Error al conectar", "No se pudo establecer la conexión (conexión nula o cerrada)");
             }
 
         } catch (SQLException e) {
-            mostrarAlerta("Error al conectar", "Error de base de datos: " + e.getMessage());
+            alertas.mostrarAlerta("Error al conectar", "Error de base de datos: " + e.getMessage());;
         } catch (Exception e) {
-            mostrarAlerta("Error al conectar", "Error inesperado: " + e.getMessage());
+            alertas.mostrarAlerta("Error al conectar", "Error inesperado: " + e.getMessage());
         }
         return false;
     }
@@ -156,23 +160,5 @@ public class ConfiguracionControlador {
         Stage stage = (Stage) regresarBoton.getScene().getWindow();
         String regresar = "/com/grupo2_2dam/tpv_software/vistas/inicio_de_sesion.fxml";
         CambiarVistas.cambiarVista(regresar, stage); // Cambiar de vista
-    }
-
-    // Método auxiliar para mostrar alertas
-    private void mostrarAlerta(String titulo, String mensaje) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(titulo);
-        alert.setHeaderText(null);
-        alert.setContentText(mensaje);
-
-        try {
-            // Obtener la ventana (Stage) interna de la alerta y añadir el icono
-            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-            stage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
-        } catch (Exception e) {
-            System.err.println("Error al cargar el icono: " + e.getMessage());
-        }
-
-        alert.showAndWait();
     }
 }

@@ -1,6 +1,7 @@
 package com.grupo2_2dam.tpv_software.controladores;
 
 import com.grupo2_2dam.tpv_software.objetos.DetalleTicket;
+import com.grupo2_2dam.tpv_software.util.Alertas;
 import com.grupo2_2dam.tpv_software.util.CambiarVistas;
 import com.grupo2_2dam.tpv_software.util.basededatos.FuncionUsuario;
 import io.github.palexdev.materialfx.controls.MFXButton;
@@ -34,6 +35,8 @@ public class VistaPagoControlador {
     private List<DetalleTicket> listaRecibida;
     private double totalVenta;
     private javafx.scene.Scene escenaAnterior;
+
+    Alertas alertas = new Alertas();
 
     /**
      * Inicializar la vista de pago con la lista de productos, el total de la venta y la escena anterior para poder volver a ella sin perder los datos introducidos
@@ -127,7 +130,7 @@ public class VistaPagoControlador {
             }
 
             //confirmación de la compra
-            mostrarAlerta("Éxito", "Factura generada en: " + ruta);
+            alertas.mostrarAlerta("Éxito", "Factura generada en: " + ruta);
 
             //volvemos a la ventana principal
             Stage stage = (Stage) lblTotal.getScene().getWindow();
@@ -150,27 +153,4 @@ public class VistaPagoControlador {
         javafx.stage.Stage stage = (javafx.stage.Stage) btnVolver.getScene().getWindow();
         stage.setScene(escenaAnterior);
     }
-
-    /**
-     * Mostrar una alerta con el título y contenido especificados, además de añadir un icono personalizado a la ventana de la alerta
-     * @param titulo
-     * @param contenido
-     */
-    private void mostrarAlerta(String titulo, String contenido) {
-        javafx.scene.control.Alert alerta = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-        alerta.setTitle(titulo);
-        alerta.setHeaderText(null);
-        alerta.setContentText(contenido);
-
-        try {
-            // Obtener la ventana (Stage) interna de la alerta y añadir el icono
-            Stage stage = (Stage) alerta.getDialogPane().getScene().getWindow();
-            stage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
-        } catch (Exception e) {
-            System.err.println("Error al cargar el icono: " + e.getMessage());
-        }
-
-        alerta.showAndWait();
-    }
-
 }

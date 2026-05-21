@@ -1,5 +1,6 @@
 package com.grupo2_2dam.tpv_software.util.basededatos;
 import com.grupo2_2dam.tpv_software.objetos.Usuario;
+import com.grupo2_2dam.tpv_software.util.Alertas;
 import com.grupo2_2dam.tpv_software.util.tratadodetexto.HashContrasena;
 import com.grupo2_2dam.tpv_software.util.tratadodetexto.WRJSON;
 
@@ -11,6 +12,26 @@ public class FuncionUsuario {
 
     private static String sqlComprobarUsuario = "SELECT 1 FROM USUARIOS WHERE NOMBRE_USUARIO = ?";
     private static String sqlCrearUsuario = "INSERT INTO USUARIOS (NOMBRE_USUARIO, CONTRASENA_USUARIO) VALUES (?, ?)";
+
+    Alertas alertas = new Alertas();
+
+    public Usuario verificarCredenciales(String username, String password) {
+        String sql = "SELECT cod_usuario, contrasena_usuario FROM USUARIOS WHERE NOMBRE_USUARIO = ?";
+        try (Connection conn = ConexionDB.obtenerConexion();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                String hashAlmacenado = rs.getString("contrasena_usuario");
+                if (HashContrasena.verifyPassword(password, hashAlmacenado)) {
+                    return new Usuario(rs.getInt("cod_usuario"), username, null);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     /**
      * Método para crear un nuevo usuario en la base de datos
@@ -44,6 +65,32 @@ public class FuncionUsuario {
             return false;
         }
         return true;
+    }
+
+    public void eliminarCuenta(String nombre_usuario) {
+
+        if (nombre_usuario.equals("admin")) {
+            alertas.mostrarAlerta("Error al eliminar el usuario", "No se puede eliminar el usuario admin.");
+            return;
+        }
+
+        try{
+            Connection conn = ConexionDB.obtenerConexion();
+
+            String sqlEliminarUsuario = "DELETE FROM USUARIOS WHERE NOMBRE_USUARIO = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sqlEliminarUsuario);
+            pstmt.setString(1, nombre_usuario);
+            int filasEliminadas = pstmt.executeUpdate();
+
+            if (filasEliminadas > 0) {
+                System.out.println("Usuario eliminado correctamente.");
+            } else {
+                System.out.println("No se encontró el usuario para eliminar.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
     }
 
     /**

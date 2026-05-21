@@ -1,19 +1,18 @@
 package com.grupo2_2dam.tpv_software.controladores;
 
 import com.grupo2_2dam.tpv_software.objetos.Usuario;
+import com.grupo2_2dam.tpv_software.util.Alertas;
 import com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB;
 import com.grupo2_2dam.tpv_software.util.CambiarVistas;
 import com.grupo2_2dam.tpv_software.util.basededatos.DatosConexion;
 import com.grupo2_2dam.tpv_software.util.basededatos.FuncionUsuario;
 import com.grupo2_2dam.tpv_software.util.tratadodetexto.HashContrasena;
 import com.grupo2_2dam.tpv_software.util.tratadodetexto.WRJSON;
-import com.grupo2_2dam.tpv_software.util.crud.ConsultasCreate;
+import com.grupo2_2dam.tpv_software.util.basededatos.crud.ConsultasCreate;
 import io.github.palexdev.materialfx.controls.MFXButton;
 import io.github.palexdev.materialfx.controls.MFXPasswordField;
 import io.github.palexdev.materialfx.controls.MFXTextField;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 
@@ -29,8 +28,12 @@ public class InicioDeSesionControlador {
     @FXML private MFXButton loginButton;
     @FXML private MFXButton btnConfiguracion;
 
+    Alertas alertas = new Alertas();
+
     // Identificamos si el usuario admin existe
-    private final String querryContrasena = "SELECT cod_usuario, contrasena_usuario FROM USUARIOS WHERE NOMBRE_USUARIO = ?";
+    private FuncionUsuario funcionUsuario = new FuncionUsuario();
+    // Querry obsoleta
+    //private final String querryContrasena = "SELECT cod_usuario, contrasena_usuario FROM USUARIOS WHERE NOMBRE_USUARIO = ?";
 
     /**
      * Inicializar la vista de inicio de sesión, estableciendo el icono y los textos flotantes, además de crear el usuario admin si no existe en la base de datos
@@ -61,82 +64,23 @@ public class InicioDeSesionControlador {
         String password = passwordField.getText();
 
         if (username.isEmpty() || password.isEmpty()) {
-            mostrarAlerta("Error", "Los campos no pueden estar vacíos.");
+            alertas.mostrarAlerta("Error", "Los campos no pueden estar vacíos.");
             return;
         }
 
         // Usamos try-with-resources para que la conexión se cierre sola al terminar
         try {
-            DatosConexion dc = WRJSON.leerJSONBaseDeDatos();
-            System.out.println(dc.toString());
-
-            // 1. Establecer conexión
-            java.sql.Connection conn = ConexionDB.obtenerConexion();
-
-            // 2. Preparar y ejecutar la consulta
-            java.sql.PreparedStatement pstmt = conn.prepareStatement(querryContrasena);
-            pstmt.setString(1, username);
-            //pstmt.setString(2, password); // Obtenemos abajo las nuevas comprobaciones
-
-            java.sql.ResultSet rs = pstmt.executeQuery();;
-
-            // 3. Procesar resultado
-            if (rs.next()) {
-                String cod_usuario = rs.getString(1);
-                String hashAlmacenado = rs.getString(2);
-                boolean verificarPassword = HashContrasena.verifyPassword(password, hashAlmacenado);
-
-                if (verificarPassword){
-
-                    // Crear objeto Usuario con el cod_usuario y nombre_usuario y lo guardamos en JSON para usarlo en otras vistas
-                    Usuario usuarioActual = new Usuario(Integer.parseInt(cod_usuario), username, null);
-                    FuncionUsuario fu = new FuncionUsuario();
-                    fu.guardarUsuarioActual(usuarioActual);
-
-                    // Obtener el Stage desde cualquier nodo (ej. loginButton)
-                    Stage stage = (Stage) loginButton.getScene().getWindow();
-                    String vistaPrincipal = "/com/grupo2_2dam/tpv_software/vistas/vista_principal.fxml";
-                    CambiarVistas.cambiarVista(vistaPrincipal, stage); // Cambiar de vista
-                } else {
-                    mostrarAlerta("Error al iniciar sesión", "Usuario o contraseña incorrectos");
-                }
+            Usuario usuario = funcionUsuario.verificarCredenciales(username, password);
+            if (usuario != null) {
+                funcionUsuario.guardarUsuarioActual(usuario);
+                Stage stage = (Stage) loginButton.getScene().getWindow();
+                CambiarVistas.cambiarVista("/com/grupo2_2dam/tpv_software/vistas/vista_principal.fxml", stage);
             } else {
-                mostrarAlerta("Error al iniciar sesión", "Usuario o contraseña incorrectos");
+                alertas.mostrarAlerta("Error al iniciar sesión", "Usuario o contraseña incorrectos");
             }
-
-
-        } catch (java.sql.SQLException e) {
-            mostrarAlerta("Error de BD", "No se pudo conectar a la base de datos.");
-        } catch (IOException e) {
-            //Cualquier otro error
-            mostrarAlerta("Error", "Hubo un error: " + e.getMessage());
-        } catch (NoSuchAlgorithmException e) {
-            mostrarAlerta("Error", e.getMessage());
-        } catch (InvalidKeySpecException e) {
-            mostrarAlerta("Error", e.getMessage());
-        }
-    }
-
-    /**
-     * Alerta para mostrar errores o información al usuario, con un icono personalizado
-     * @param titulo
-     * @param contenido
-     */
-    private void mostrarAlerta(String titulo, String contenido) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(titulo);
-        alert.setHeaderText(null);
-        alert.setContentText(contenido);
-
-        try {
-            // Obtener la ventana (Stage) interna de la alerta y añadir el icono
-            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-            stage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
         } catch (Exception e) {
-            System.err.println("Error al cargar el icono: " + e.getMessage());
+            alertas.mostrarAlerta("Error", "Hubo un error: " + e.getMessage());
         }
-
-        alert.showAndWait();
     }
 
     /**

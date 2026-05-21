@@ -1,13 +1,20 @@
-package com.grupo2_2dam.tpv_software.util.crud;
+package com.grupo2_2dam.tpv_software.util.basededatos.crud;
 
+import com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB;
 import com.grupo2_2dam.tpv_software.util.tratadodetexto.HashContrasena;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.UUID;
 
 import static com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB.obtenerConexion;
 
+
+/**
+ * Todos los métodos hechos por Marcos :)
+ */
 public class ConsultasCreate {
 
     //Querries para buscar el admin y para
@@ -44,6 +51,34 @@ public class ConsultasCreate {
             }
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public boolean crearCategoria(String nombre) {
+        String sql = "INSERT INTO CATEGORIAS (COD_CATEGORIA, NOMBRE_CATEGORIA) VALUES ((SELECT COALESCE(MAX(COD_CATEGORIA),0)+1 FROM CATEGORIAS), ?)";
+        try (Connection conn = ConexionDB.obtenerConexion();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, nombre.trim());
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean crearProducto(String nombre, double precio, int codCategoria) {
+        String codProducto = "PROD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String sql = "INSERT INTO PRODUCTOS (COD_PRODUCTO, NOMBRE_PRODUCTO, PRECIO_VENTA_PRODUCTO, COD_CATEGORIA) VALUES (?, ?, ?, ?)";
+        try (Connection conn = ConexionDB.obtenerConexion();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, codProducto);
+            pstmt.setString(2, nombre.trim());
+            pstmt.setDouble(3, precio);
+            pstmt.setInt(4, codCategoria);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 }

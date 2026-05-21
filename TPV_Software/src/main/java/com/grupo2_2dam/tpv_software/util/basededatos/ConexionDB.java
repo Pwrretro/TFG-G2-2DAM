@@ -1,5 +1,6 @@
 package com.grupo2_2dam.tpv_software.util.basededatos;
 
+import com.grupo2_2dam.tpv_software.util.Alertas;
 import com.grupo2_2dam.tpv_software.util.tratadodetexto.WRJSON;
 
 import java.sql.Connection;
