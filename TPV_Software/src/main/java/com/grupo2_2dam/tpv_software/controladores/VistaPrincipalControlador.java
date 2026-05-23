@@ -15,11 +15,10 @@ import com.grupo2_2dam.tpv_software.util.tratadodeimagenes.ProcesarImagen;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 
 //Liberías que se utilizaran, no tocar que luego se me olvidan xd
 import io.github.palexdev.materialfx.controls.MFXButton;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
@@ -29,6 +28,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB.obtenerConexion;
 
@@ -179,50 +179,84 @@ public class VistaPrincipalControlador {
      * Modificar el nombre de una categoría existente en la base de datos, comprobando que el nombre original exista y que el nuevo nombre no esté vacío ni exista ya, y recargando las categorías para mostrar el cambio, además de mostrar alertas en caso de error
      */
     private void modificarCategoria() {
-        TextInputDialog idDialog = new TextInputDialog();
-        idDialog.setTitle("Modificar Categoría");
-        idDialog.setHeaderText("Introduce el nombre actual de la categoría");
+        List<Categoria> categorias = consultasRead.obtenerCategorias();
+        if (categorias == null || categorias.isEmpty()) return;
 
-        idDialog.showAndWait().ifPresent(nombreOriginal -> {
-            if (!categoriaExiste(nombreOriginal)) {
-                alertas.mostrarAlerta("Error", "No existe esa categoría.");
-                return;
+        //creamos la lista para el desplegable
+        List<String> nombres = new java.util.ArrayList<>();
+        for (Categoria cat : categorias) {
+            nombres.add(cat.getNombre());
+        }
+
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(nombres.get(0), nombres);
+        dialog.setTitle("Modificar Categoría");
+        dialog.setHeaderText("Selecciona la categoría a modificar");
+        dialog.setContentText("Categoría:");
+
+        //comprobamos si el usuario ha seleccionado algo y le ha dado a OK
+        java.util.Optional<String> resultado = dialog.showAndWait();
+        if (resultado.isPresent()) {
+            String nombreOriginal = resultado.get();
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/grupo2_2dam/tpv_software/vistas/vista_modificar_categoria.fxml"));
+                javafx.scene.Parent root = loader.load();
+                ModificarCategoriaControlador controlador = loader.getController();
+                controlador.inicializarDatos(nombreOriginal, this);
+
+                Stage stage = new Stage();
+                stage.setTitle("Modificar Categoría");
+                stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+                stage.setScene(new javafx.scene.Scene(root));
+                stage.setResizable(false);
+                stage.showAndWait();
+            } catch (Exception e) {
+                e.printStackTrace();
+                alertas.mostrarAlerta("Error", "No se pudo cargar la vista.");
             }
-            TextInputDialog nameDialog = new TextInputDialog();
-            nameDialog.setTitle("Nuevo Nombre");
-            nameDialog.setContentText("Nuevo nombre para " + nombreOriginal + ":");
-
-            nameDialog.showAndWait().ifPresent(nuevoNombre -> {
-                boolean actualizado = consultasUpdate.actualizarCategoria(nombreOriginal, nuevoNombre);
-                if (actualizado) {
-                    cargarCategorias();
-                } else {
-                    alertas.mostrarAlerta("Error de BD", "No se pudo actualizar la categoría.");
-                }
-            });
-        });
+        }
     }
 
     /**
      * Eliminar una categoría existente en la base de datos, comprobando que el nombre exista, y recargando las categorías para mostrar el cambio, además de mostrar alertas en caso de error. Se borrarán también todos los productos asociados a esa categoría, y si alguno de esos productos tiene ventas, movimientos o líneas de venta asociadas, no se podrá eliminar la categoría ni los productos asociados, mostrando una alerta informativa al usuario
      */
     private void eliminarCategoria() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Eliminar Categoría");
-        dialog.setHeaderText("¡ATENCIÓN! Se borrarán también todos los productos asociados.\nIntroduce el nombre de la categoría:");
+        List<Categoria> categorias = consultasRead.obtenerCategorias();
+        if (categorias == null || categorias.isEmpty()) return;
 
-        dialog.showAndWait().ifPresent(nombre -> {
-            if (!consultasRead.existeCategoria(nombre)) {
-                alertas.mostrarAlerta("Error", "No existe esa categoría.");
-                return;
+        //creamos la lista para el desplegable usando un bucle tradicional
+        List<String> nombres = new java.util.ArrayList<>();
+        for (Categoria cat : categorias) {
+            nombres.add(cat.getNombre());
+        }
+
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(nombres.get(0), nombres);
+        dialog.setTitle("Eliminar Categoría");
+        dialog.setHeaderText("Selecciona la categoría a eliminar");
+        dialog.setContentText("Categoría:");
+
+        java.util.Optional<String> resultado = dialog.showAndWait();
+        if (resultado.isPresent()) {
+            String nombre = resultado.get();
+
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Confirmar Eliminación");
+            //confirmación del usuario
+            confirm.setHeaderText("¡ATENCIÓN! Se borrarán también todos los productos asociados.");
+            confirm.setContentText("¿Estás seguro de que deseas eliminar la categoría '" + nombre + "'?");
+
+            java.util.Optional<ButtonType> respuesta = confirm.showAndWait();
+            if (respuesta.isPresent()) {
+                if (respuesta.get() == ButtonType.OK) {
+                    boolean eliminado = consultasDelete.eliminarCategoria(nombre);
+                    if (eliminado) {
+                        cargarCategorias();
+                        alertas.mostrarAlerta("Éxito", "Categoría y sus productos eliminados.");
+                    } else {
+                        alertas.mostrarAlerta("Error", "No se pudo borrar. Es posible que existan restricciones en la Base de Datos.");
+                    }
+                }
             }
-            boolean eliminado = consultasDelete.eliminarCategoria(nombre);
-            if (eliminado) {
-                cargarCategorias();
-            } else {
-                alertas.mostrarAlerta("Error", "No se pudo borrar. Es posible que los productos de esta categoría estén asociados a ventas o movimientos.");
-            }
-        });
+        }
     }
     //------------------------------------CATEGORÍA-------------------------------------
 
@@ -231,98 +265,131 @@ public class VistaPrincipalControlador {
      */
     //------------------------------------PRODUCTOS-------------------------------------
     private void addProducto() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Nuevo Producto");
-        dialog.setHeaderText("Añadir producto a la categoría: " + currentCategNombre);
-        dialog.setContentText("Nombre del producto:");
+        try {
+            //cargamos la vista de creación
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/grupo2_2dam/tpv_software/vistas/vista_anadir_producto.fxml"));
+            javafx.scene.Parent root = loader.load();
 
-        dialog.showAndWait().ifPresent(nombre -> {
-            if (nombre.trim().isEmpty()) {
-                alertas.mostrarAlerta("Error", "El nombre NO puede estar vacío.");
-                return;
+            AnadirProductoControlador controlador = loader.getController();
+            controlador.inicializarDatos(currentCategId, currentCategNombre, this);
+
+            //creamos una nueva ventana o Stage
+            Stage stage = new Stage();
+            stage.setTitle("Añadir Producto");
+
+            //no se puede interactuar con la ventana principal hasta cerrar esta
+            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+
+            //le damos estilo
+            javafx.scene.Scene scene = new javafx.scene.Scene(root);
+            try {
+                scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            } catch (NullPointerException e) {
+                System.out.println("No se encontró styles.css, ignorando...");
             }
-            if (consultasRead.existeProducto(nombre, currentCategId)) {
-                alertas.mostrarAlerta("Error", "El producto ya existe en esta categoría.");
-                return;
-            }
-            TextInputDialog precioDialog = new TextInputDialog("0.00");
-            precioDialog.setTitle("Precio de Venta");
-            precioDialog.setHeaderText("Introduce el precio para: " + nombre);
-            precioDialog.setContentText("Precio:");
-            precioDialog.showAndWait().ifPresent(precioStr -> {
-                try {
-                    double precio = Double.parseDouble(precioStr.replace(",", "."));
-                    boolean creado = consultasCreate.crearProducto(nombre, precio, currentCategId);
-                    if (creado) {
-                        cargarProductos();
-                    } else {
-                        alertas.mostrarAlerta("Error en la Base de Datos", "No se pudo añadir el producto.");
-                    }
-                } catch (NumberFormatException e) {
-                    alertas.mostrarAlerta("Error", "Por favor, introduce un precio válido.");
-                }
-            });
-        });
+
+            stage.setScene(scene);
+
+            //no se puede redimensionar
+            stage.setResizable(false);
+            stage.showAndWait();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            alertas.mostrarAlerta("Error", "No se pudo cargar la vista para añadir el producto.");
+        }
     }
 
     /**
      * Modificar el nombre y precio de un producto existente en la base de datos, comprobando que el nombre original exista en esa categoría y que el nuevo nombre no esté vacío ni exista ya en esa categoría, y recargando los productos para mostrar el cambio, además de mostrar alertas en caso de error. Se pedirá también el nuevo precio del producto al modificarlo, comprobando que sea un número válido
      */
     private void modificarProducto() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Modificar Producto");
-        dialog.setHeaderText("Introduce el nombre actual del producto a modificar:");
+        List<Producto> productos = consultasRead.obtenerProductosPorCategoria(currentCategId);
+        if (productos == null || productos.isEmpty()) {
+            alertas.mostrarAlerta("Información", "No hay productos en esta categoría.");
+            return;
+        }
 
-        dialog.showAndWait().ifPresent(nombreOriginal -> {
-            if (!consultasRead.existeProducto(nombreOriginal, currentCategId)) {
-                alertas.mostrarAlerta("Error", "No existe ese producto en esta categoría.");
-                return;
+        //creamos la lista para el desplegable
+        List<String> nombres = new java.util.ArrayList<>();
+        for (Producto prod : productos) {
+            nombres.add(prod.getNombre());
+        }
+
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(nombres.get(0), nombres);
+        dialog.setTitle("Modificar Producto");
+        dialog.setHeaderText("Selecciona el producto a modificar");
+        dialog.setContentText("Producto:");
+
+        java.util.Optional<String> resultado = dialog.showAndWait();
+        if (resultado.isPresent()) {
+            String nombreOriginal = resultado.get();
+            Double precioOriginal = consultasRead.obtenerPrecioProducto(nombreOriginal, currentCategId);
+
+            if (precioOriginal != null) {
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/grupo2_2dam/tpv_software/vistas/vista_modificar_producto.fxml"));
+                    javafx.scene.Parent root = loader.load();
+                    ModificarProductoControlador controlador = loader.getController();
+                    controlador.inicializarDatos(nombreOriginal, precioOriginal, currentCategId, this);
+
+                    Stage stage = new Stage();
+                    stage.setTitle("Modificar Producto");
+                    stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+                    stage.setScene(new javafx.scene.Scene(root));
+                    stage.setResizable(false);
+                    stage.showAndWait();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    alertas.mostrarAlerta("Error", "No se pudo cargar la vista.");
+                }
             }
-            TextInputDialog nameDialog = new TextInputDialog();
-            nameDialog.setTitle("Nuevo Nombre");
-            nameDialog.setContentText("Nuevo nombre para " + nombreOriginal + ":");
-            nameDialog.showAndWait().ifPresent(nuevoNombre -> {
-                TextInputDialog priceDialog = new TextInputDialog();
-                priceDialog.setTitle("Nuevo Precio");
-                priceDialog.setHeaderText("Introduce el nuevo precio para: " + nuevoNombre);
-                priceDialog.setContentText("Precio:");
-                priceDialog.showAndWait().ifPresent(precioStr -> {
-                    try {
-                        double nuevoPrecio = Double.parseDouble(precioStr.replace(",", "."));
-                        boolean actualizado = consultasUpdate.actualizarProducto(nombreOriginal, currentCategId, nuevoNombre, nuevoPrecio);
-                        if (actualizado) {
-                            cargarProductos();
-                        } else {
-                            alertas.mostrarAlerta("Error en la Base de Datos", "No se pudo actualizar el producto.");
-                        }
-                    } catch (NumberFormatException e) {
-                        alertas.mostrarAlerta("Error", "Por favor, introduce un precio válido.");
-                    }
-                });
-            });
-        });
+        }
     }
 
     /**
      * Eliminar un producto existente en la base de datos, comprobando que el nombre exista en esa categoría, y recargando los productos para mostrar el cambio, además de mostrar alertas en caso de error. Si el producto tiene ventas, movimientos o líneas de venta asociadas, no se podrá eliminar el producto, mostrando una alerta informativa al usuario
      */
     private void eliminarProducto() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Eliminar Producto");
-        dialog.setHeaderText("Introduce el nombre del producto a eliminar:");
+        List<Producto> productos = consultasRead.obtenerProductosPorCategoria(currentCategId);
+        if (productos == null || productos.isEmpty()) {
+            alertas.mostrarAlerta("Información", "No hay productos en esta categoría.");
+            return;
+        }
 
-        dialog.showAndWait().ifPresent(nombre -> {
-            if (!consultasRead.existeProducto(nombre, currentCategId)) {
-                alertas.mostrarAlerta("Error", "No existe ese producto en esta categoría.");
-                return;
+        // Creamos la lista para el desplegable usando un bucle tradicional
+        List<String> nombres = new java.util.ArrayList<>();
+        for (Producto prod : productos) {
+            nombres.add(prod.getNombre());
+        }
+
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(nombres.get(0), nombres);
+        dialog.setTitle("Eliminar Producto");
+        dialog.setHeaderText("Selecciona el producto a eliminar");
+        dialog.setContentText("Producto:");
+
+        java.util.Optional<String> resultado = dialog.showAndWait();
+        if (resultado.isPresent()) {
+            String nombre = resultado.get();
+
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Confirmar Eliminación");
+            confirm.setHeaderText("Borrado de producto");
+            confirm.setContentText("¿Estás seguro de que deseas eliminar el producto '" + nombre + "'?");
+
+            java.util.Optional<ButtonType> respuesta = confirm.showAndWait();
+            if (respuesta.isPresent()) {
+                if (respuesta.get() == ButtonType.OK) {
+                    boolean eliminado = consultasDelete.eliminarProducto(nombre, currentCategId);
+                    if (eliminado) {
+                        cargarProductos();
+                        alertas.mostrarAlerta("Éxito", "Producto eliminado correctamente.");
+                    } else {
+                        alertas.mostrarAlerta("Error", "No se puede eliminar el producto porque tiene ventas o movimientos asociados.");
+                    }
+                }
             }
-            boolean eliminado = consultasDelete.eliminarProducto(nombre, currentCategId);
-            if (eliminado) {
-                cargarProductos();
-            } else {
-                alertas.mostrarAlerta("Error", "No se puede eliminar el producto porque tiene ventas, movimientos o líneas de venta asociadas.");
-            }
-        });
+        }
     }
     //------------------------------------PRODUCTOS-------------------------------------
 
@@ -379,7 +446,7 @@ public class VistaPrincipalControlador {
      * Cargar Categorías y Productos: Método para cargar las categorías o productos desde la base de datos dependiendo del panel en el que estemos, creando dinámicamente botones para cada categoría o producto con su nombre, añadiendo estilos personalizados a los botones, y estableciendo la lógica para cambiar entre panel de categorías y productos al hacer clic en los botones, además de mostrar alertas en caso de error de conexión a la base de datos
      */
     @FXML
-    private void cargarCategorias() {
+    public void cargarCategorias() {
         flowProductos.getChildren().clear();
         List<Categoria> categorias = consultasRead.obtenerCategorias();
         if (categorias == null) {
@@ -398,7 +465,7 @@ public class VistaPrincipalControlador {
     /**
      * Cargar productos: Método para cargar los productos de la categoría seleccionada desde la base de datos, creando dinámicamente botones para cada producto con su nombre, añadiendo estilos personalizados a los botones, y estableciendo la lógica para añadir el producto al ticket al hacer clic en el botón del producto, además de mostrar alertas en caso de error de conexión a la base de datos
      */
-    private void cargarProductos() {
+    public void cargarProductos() {
         flowProductos.getChildren().clear();
 
         //Volver a las categorías

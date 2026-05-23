@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?import io.github.palexdev.materialfx.controls.MFXButton?>
+<?import io.github.palexdev.materialfx.controls.MFXTextField?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="TOP_CENTER" spacing="20.0" style="-fx-background-color: white; -fx-padding: 30;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.grupo2_2dam.tpv_software.controladores.ModificarProductoControlador">
+    <children>
+        <Label fx:id="lblTitulo" text="Modificar Producto" textFill="#333333">
+            <font><Font name="System Bold" size="18.0" /></font>
+        </Label>
+        <VBox spacing="15.0">
+            <children>
+                <MFXTextField fx:id="txtNombre" floatingText="Nuevo nombre del producto" prefWidth="300.0" />
+                <MFXTextField fx:id="txtPrecio" floatingText="Nuevo precio (€)" prefWidth="300.0" />
+            </children>
+        </VBox>
+        <HBox alignment="CENTER" spacing="20.0">
+            <children>
+                <MFXButton fx:id="btnCancelar" onAction="#cerrarVentana" style="-fx-background-color: #ff4c4c; -fx-text-fill: white;" text="Cancelar" />
+                <MFXButton fx:id="btnGuardar" onAction="#guardarCambios" style="-fx-background-color: #4caf50; -fx-text-fill: white;" text="Guardar Cambios" />
+            </children>
+            <VBox.margin><Insets top="10.0" /></VBox.margin>
+        </HBox>
+    </children>
+</VBox>
