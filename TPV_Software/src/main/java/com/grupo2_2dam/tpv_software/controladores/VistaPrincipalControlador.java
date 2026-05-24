@@ -11,202 +11,190 @@ import com.grupo2_2dam.tpv_software.util.basededatos.crud.ConsultasCreate;
 import com.grupo2_2dam.tpv_software.util.basededatos.crud.ConsultasDelete;
 import com.grupo2_2dam.tpv_software.util.basededatos.crud.ConsultasRead;
 import com.grupo2_2dam.tpv_software.util.basededatos.crud.ConsultasUpdate;
+import com.grupo2_2dam.tpv_software.util.tratadodeimagenes.GestorImagenes;
 import com.grupo2_2dam.tpv_software.util.tratadodeimagenes.ProcesarImagen;
+import com.grupo2_2dam.tpv_software.util.tratadodetexto.WRJSON;
+import io.github.palexdev.materialfx.controls.MFXButton;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
-
-//Liberías que se utilizaran, no tocar que luego se me olvidan xd
-import io.github.palexdev.materialfx.controls.MFXButton;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.StackPane;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.scene.layout.Region;
 
+import java.io.File;
 import java.io.IOException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static com.grupo2_2dam.tpv_software.util.basededatos.ConexionDB.obtenerConexion;
 
 public class VistaPrincipalControlador {
 
-    @FXML
-    private MFXButton regresarButton;
-
-    @FXML
-    private Label nombre_Usuario;
-
-    @FXML
-    private ImageView foto_de_perfil; //Imagen de perfil de usuario
-
-    @FXML
-    private ImageView foto_categoria;
-
-    @FXML
-    private ImageView foto_mango;
-
-    @FXML
-    private FlowPane flowProductos;
-
-    //Botones laterales, se inicializan para cambiar texto y funcionalidad categorías/productos
+    @FXML private MFXButton regresarButton;
+    @FXML private Label nombre_Usuario;
+    @FXML private ImageView foto_de_perfil;
+    @FXML private ImageView foto_categoria;
+    @FXML private ImageView foto_mango;
+    @FXML private FlowPane flowProductos;
     @FXML private MFXButton btnAnadir;
     @FXML private MFXButton btnModificar;
     @FXML private MFXButton btnEliminar;
+    @FXML private javafx.scene.layout.VBox ticketVBox;
+    @FXML private Label subtotalLabel;
+    @FXML private MFXButton btnPagar;
+    @FXML private StackPane fotoContainer;
 
-    //Gestión de paneles, variables de estado
     private boolean panelCategorias = true;
     private int currentCategId = -1;
     private String currentCategNombre = "";
-
-    //Ticket
-    @FXML private javafx.scene.layout.VBox ticketVBox;
-    @FXML private javafx.scene.control.Label subtotalLabel;
-    @FXML private MFXButton btnPagar;
     private ArrayList<DetalleTicket> listaProductosTicket = new ArrayList<>();
-
     private double subtotalVenta = 0.0;
 
-    //Utilidades
-    Alertas alertas = new Alertas();
-    ProcesarImagen procesarImagen = new ProcesarImagen();
-
-    //Consultas
+    private Alertas alertas = new Alertas();
+    private ProcesarImagen procesarImagen = new ProcesarImagen();
     private ConsultasCreate consultasCreate = new ConsultasCreate();
     private ConsultasRead consultasRead = new ConsultasRead();
     private ConsultasUpdate consultasUpdate = new ConsultasUpdate();
     private ConsultasDelete consultasDelete = new ConsultasDelete();
     private FuncionUsuario funcionUsuario = new FuncionUsuario();
 
-    /**
-     * Inicializar la vista principal, cargando el perfil del usuario actual y las categorías de productos desde la base de datos, además de establecer la lógica para los botones laterales de añadir, modificar y eliminar tanto categorías como productos dependiendo del panel en el que estemos
-     */
     @FXML
-    public void initialize() { // Aquí se cargan los productos e imagenes de la base de datos
-
-        //Perfil ---------------------------
+    public void initialize() {
         Usuario usuario = funcionUsuario.obtenerUsuarioActual();
-        nombre_Usuario.setText(usuario.getNombre_usuario()); //15 carácteres máximos para evitar errores
+        nombre_Usuario.setText(usuario.getNombre_usuario());
 
-        String imagenurl = "/imagenes/kanna.png"; // Esto hay que cambiarlo por la base de datos
-        foto_de_perfil.setImage(procesarImagen.procesarImagen(imagenurl, foto_de_perfil));
-        //Perfil ---------------------------
+        // Cargar foto de perfil desde BD o por defecto
+        if (usuario.getImagenRuta() != null && !usuario.getImagenRuta().isEmpty()) {
+            String rutaCompleta = System.getProperty("user.home") + "/.tpv_software/" + usuario.getImagenRuta();
+            Image img = new Image("file:" + rutaCompleta, 90, 90, true, true);
+            foto_de_perfil.setImage(img);
+            // Aplicar clip circular ya está en FXML
+        } else {
+            String imagenurl = "/imagenes/default_user_profile.png";
+            foto_de_perfil.setImage(procesarImagen.procesarImagen(imagenurl, foto_de_perfil));
+        }
 
+        fotoContainer.setOnMouseClicked(event -> cambiarFotoPerfil());
         cargarCategorias();
-
-/*
-        //Productos -----------------------
-        String categoria = "/imagenes/frutas.jpg";
-        foto_categoria.setImage(procesarImagen(categoria));
-
-        String mango = "/imagenes/mango.jpg";
-        foto_mango.setImage(procesarImagen(mango));
-        //Productos -----------------------
-*/
-
-        //Categorías ----------------------
     }
 
-    /**
-     * Cerrar sesión volviendo a la vista de inicio de sesión, eliminando el usuario actual del JSON para que no se pueda usar en otras vistas sin loguearse de nuevo y mostrando una alerta de confirmación
-     * @param actionEvent
-     * @throws IOException
-     */
+    private void cambiarFotoPerfil() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg"));
+        File file = fileChooser.showOpenDialog(foto_de_perfil.getScene().getWindow());
+
+        if (file != null) {
+            Usuario usuarioActual = funcionUsuario.obtenerUsuarioActual();
+            String nombreBase = "user_" + usuarioActual.getCod_usuario();
+            String rutaRelativa = GestorImagenes.guardarImagen(file, nombreBase, 90, 90);
+
+            if (rutaRelativa != null) {
+                boolean actualizado = funcionUsuario.actualizarImagenUsuario(usuarioActual, rutaRelativa);
+
+                if (actualizado) {
+                    usuarioActual.setImagenRuta(rutaRelativa);
+                    new WRJSON().crearJSONUsuarioActual(usuarioActual);
+                    Image nuevaImg = new Image("file:" + System.getProperty("user.home") + "/.tpv_software/" + rutaRelativa, 90, 90, true, true);
+                    foto_de_perfil.setImage(nuevaImg);
+                    alertas.mostrarAlerta("Éxito", "Foto de perfil actualizada.");
+                } else {
+                    alertas.mostrarAlerta("Error", "No se pudo guardar la imagen en la base de datos.");
+                }
+            } else {
+                alertas.mostrarAlerta("Error", "No se pudo procesar la imagen.");
+            }
+        }
+    }
+
     public void cerrar_sesion(ActionEvent actionEvent) throws IOException {
         Stage stage = (Stage) regresarButton.getScene().getWindow();
-        String vistaPrincipal = "/com/grupo2_2dam/tpv_software/vistas/inicio_de_sesion.fxml";
-        CambiarVistas.cambiarVista(vistaPrincipal, stage); // Cambiar de vista
+        CambiarVistas.cambiarVista("/com/grupo2_2dam/tpv_software/vistas/inicio_de_sesion.fxml", stage);
     }
 
-
-
-
-    /**
-     * Handlers para los botones de añadir, modificar y eliminar, que dependiendo del panel en el que estemos (categorías o productos) llamarán a la función correspondiente para realizar la acción deseada
-     */
-    //------------------------------------CATEGORÍA-------------------------------------
-    @FXML
-    private void handleAdd() {
+    @FXML private void handleAdd() {
         if (panelCategorias) addCategoria();
         else addProducto();
     }
 
-    @FXML
-    private void handleModificar() {
+    @FXML private void handleModificar() {
         if (panelCategorias) modificarCategoria();
         else modificarProducto();
     }
 
-    @FXML
-    private void handleEliminar() {
+    @FXML private void handleEliminar() {
         if (panelCategorias) eliminarCategoria();
         else eliminarProducto();
     }
 
-    /**
-     * Añadir una nueva categoría a la base de datos, comprobando que el nombre no esté vacío ni exista ya, y recargando las categorías para mostrar la nueva categoría añadida, además de mostrar alertas en caso de error
-     */
-    //------------------------------------CATEGORÍA-------------------------------------
     private void addCategoria() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Nueva Categoría");
-        dialog.setHeaderText("Añadir una nueva categoría");
-        dialog.setContentText("Nombre:");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/grupo2_2dam/tpv_software/vistas/vista_anadir_categoria.fxml"));
+            javafx.scene.Parent root = loader.load();
+            AnadirCategoriaControlador controlador = loader.getController();
+            controlador.inicializarDatos(this);
 
-        dialog.showAndWait().ifPresent(nombre -> {
-            if (nombre.trim().isEmpty()) {
-                alertas.mostrarAlerta("Error", "El nombre NO puede estar vacío.");
-                return;
-            }
-            if (categoriaExiste(nombre)) {
-                alertas.mostrarAlerta("Error", "La categoría ya existe.");
-                return;
-            }
+            Stage stage = new Stage();
+            stage.setTitle("Añadir Categoría");
+            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            // Añadir el icono de la aplicación
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
 
-            boolean creado = consultasCreate.crearCategoria(nombre);
-            if (creado) {
-                cargarCategorias();
-            } else {
-                alertas.mostrarAlerta("Error de BD", "No se pudo añadir la categoría.");
-            }
-        });
+            javafx.scene.Scene scene = new javafx.scene.Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            stage.setScene(scene);
+            stage.setResizable(false);
+            stage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            alertas.mostrarAlerta("Error", "No se pudo cargar la vista para añadir la categoría.");
+        }
     }
 
-    /**
-     * Modificar el nombre de una categoría existente en la base de datos, comprobando que el nombre original exista y que el nuevo nombre no esté vacío ni exista ya, y recargando las categorías para mostrar el cambio, además de mostrar alertas en caso de error
-     */
     private void modificarCategoria() {
         List<Categoria> categorias = consultasRead.obtenerCategorias();
         if (categorias == null || categorias.isEmpty()) return;
 
-        //creamos la lista para el desplegable
-        List<String> nombres = new java.util.ArrayList<>();
-        for (Categoria cat : categorias) {
-            nombres.add(cat.getNombre());
-        }
+        List<String> nombres = new ArrayList<>();
+        for (Categoria cat : categorias) nombres.add(cat.getNombre());
 
         ChoiceDialog<String> dialog = new ChoiceDialog<>(nombres.get(0), nombres);
         dialog.setTitle("Modificar Categoría");
         dialog.setHeaderText("Selecciona la categoría a modificar");
         dialog.setContentText("Categoría:");
 
-        //comprobamos si el usuario ha seleccionado algo y le ha dado a OK
+        // Asignar icono personalizado al diálogo
+        Stage dialogStage = (Stage) dialog.getDialogPane().getScene().getWindow();
+        dialogStage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
+
         java.util.Optional<String> resultado = dialog.showAndWait();
         if (resultado.isPresent()) {
             String nombreOriginal = resultado.get();
+            Categoria catSeleccionada = categorias.stream().filter(c -> c.getNombre().equals(nombreOriginal)).findFirst().orElse(null);
+            if (catSeleccionada == null) return;
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/grupo2_2dam/tpv_software/vistas/vista_modificar_categoria.fxml"));
                 javafx.scene.Parent root = loader.load();
                 ModificarCategoriaControlador controlador = loader.getController();
-                controlador.inicializarDatos(nombreOriginal, this);
-
+                controlador.inicializarDatos(nombreOriginal, catSeleccionada.getImagenRuta(), this);
                 Stage stage = new Stage();
                 stage.setTitle("Modificar Categoría");
                 stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-                stage.setScene(new javafx.scene.Scene(root));
+                stage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
+
+                javafx.scene.Scene scene = new javafx.scene.Scene(root);
+                scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+                stage.setScene(scene);
+
                 stage.setResizable(false);
                 stage.showAndWait();
             } catch (Exception e) {
@@ -216,23 +204,21 @@ public class VistaPrincipalControlador {
         }
     }
 
-    /**
-     * Eliminar una categoría existente en la base de datos, comprobando que el nombre exista, y recargando las categorías para mostrar el cambio, además de mostrar alertas en caso de error. Se borrarán también todos los productos asociados a esa categoría, y si alguno de esos productos tiene ventas, movimientos o líneas de venta asociadas, no se podrá eliminar la categoría ni los productos asociados, mostrando una alerta informativa al usuario
-     */
     private void eliminarCategoria() {
         List<Categoria> categorias = consultasRead.obtenerCategorias();
         if (categorias == null || categorias.isEmpty()) return;
 
-        //creamos la lista para el desplegable usando un bucle tradicional
-        List<String> nombres = new java.util.ArrayList<>();
-        for (Categoria cat : categorias) {
-            nombres.add(cat.getNombre());
-        }
+        List<String> nombres = new ArrayList<>();
+        for (Categoria cat : categorias) nombres.add(cat.getNombre());
 
         ChoiceDialog<String> dialog = new ChoiceDialog<>(nombres.get(0), nombres);
         dialog.setTitle("Eliminar Categoría");
         dialog.setHeaderText("Selecciona la categoría a eliminar");
         dialog.setContentText("Categoría:");
+
+        // Icono para el ChoiceDialog
+        Stage dialogStage = (Stage) dialog.getDialogPane().getScene().getWindow();
+        dialogStage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
 
         java.util.Optional<String> resultado = dialog.showAndWait();
         if (resultado.isPresent()) {
@@ -240,69 +226,47 @@ public class VistaPrincipalControlador {
 
             Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
             confirm.setTitle("Confirmar Eliminación");
-            //confirmación del usuario
             confirm.setHeaderText("¡ATENCIÓN! Se borrarán también todos los productos asociados.");
             confirm.setContentText("¿Estás seguro de que deseas eliminar la categoría '" + nombre + "'?");
 
+            // Icono para el Alert de confirmación
+            Stage confirmStage = (Stage) confirm.getDialogPane().getScene().getWindow();
+            confirmStage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
+
             java.util.Optional<ButtonType> respuesta = confirm.showAndWait();
-            if (respuesta.isPresent()) {
-                if (respuesta.get() == ButtonType.OK) {
-                    boolean eliminado = consultasDelete.eliminarCategoria(nombre);
-                    if (eliminado) {
-                        cargarCategorias();
-                        alertas.mostrarAlerta("Éxito", "Categoría y sus productos eliminados.");
-                    } else {
-                        alertas.mostrarAlerta("Error", "No se pudo borrar. Es posible que existan restricciones en la Base de Datos.");
-                    }
+            if (respuesta.isPresent() && respuesta.get() == ButtonType.OK) {
+                boolean eliminado = consultasDelete.eliminarCategoria(nombre);
+                if (eliminado) {
+                    cargarCategorias();
+                    alertas.mostrarAlerta("Éxito", "Categoría y sus productos eliminados.");
+                } else {
+                    alertas.mostrarAlerta("Error", "No se pudo borrar. Es posible que existan restricciones en la Base de Datos.");
                 }
             }
         }
     }
-    //------------------------------------CATEGORÍA-------------------------------------
 
-    /**
-     * Añadir un nuevo producto a la categoría actual en la base de datos, comprobando que el nombre no esté vacío ni exista ya en esa categoría, y recargando los productos para mostrar el nuevo producto añadido, además de mostrar alertas en caso de error. Se pedirá también el precio del producto al añadirlo, comprobando que sea un número válido
-     */
-    //------------------------------------PRODUCTOS-------------------------------------
     private void addProducto() {
         try {
-            //cargamos la vista de creación
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/grupo2_2dam/tpv_software/vistas/vista_anadir_producto.fxml"));
             javafx.scene.Parent root = loader.load();
-
             AnadirProductoControlador controlador = loader.getController();
             controlador.inicializarDatos(currentCategId, currentCategNombre, this);
-
-            //creamos una nueva ventana o Stage
             Stage stage = new Stage();
             stage.setTitle("Añadir Producto");
-
-            //no se puede interactuar con la ventana principal hasta cerrar esta
             stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-
-            //le damos estilo
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png"))); // ICONO
             javafx.scene.Scene scene = new javafx.scene.Scene(root);
-            try {
-                scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
-            } catch (NullPointerException e) {
-                System.out.println("No se encontró styles.css, ignorando...");
-            }
-
+            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
             stage.setScene(scene);
-
-            //no se puede redimensionar
             stage.setResizable(false);
             stage.showAndWait();
-
         } catch (IOException e) {
             e.printStackTrace();
             alertas.mostrarAlerta("Error", "No se pudo cargar la vista para añadir el producto.");
         }
     }
 
-    /**
-     * Modificar el nombre y precio de un producto existente en la base de datos, comprobando que el nombre original exista en esa categoría y que el nuevo nombre no esté vacío ni exista ya en esa categoría, y recargando los productos para mostrar el cambio, además de mostrar alertas en caso de error. Se pedirá también el nuevo precio del producto al modificarlo, comprobando que sea un número válido
-     */
     private void modificarProducto() {
         List<Producto> productos = consultasRead.obtenerProductosPorCategoria(currentCategId);
         if (productos == null || productos.isEmpty()) {
@@ -310,33 +274,39 @@ public class VistaPrincipalControlador {
             return;
         }
 
-        //creamos la lista para el desplegable
-        List<String> nombres = new java.util.ArrayList<>();
-        for (Producto prod : productos) {
-            nombres.add(prod.getNombre());
-        }
+        List<String> nombres = new ArrayList<>();
+        for (Producto prod : productos) nombres.add(prod.getNombre());
 
         ChoiceDialog<String> dialog = new ChoiceDialog<>(nombres.get(0), nombres);
         dialog.setTitle("Modificar Producto");
         dialog.setHeaderText("Selecciona el producto a modificar");
         dialog.setContentText("Producto:");
 
+        // Icono para el diálogo
+        Stage dialogStage = (Stage) dialog.getDialogPane().getScene().getWindow();
+        dialogStage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
+
         java.util.Optional<String> resultado = dialog.showAndWait();
         if (resultado.isPresent()) {
             String nombreOriginal = resultado.get();
+            Producto prodOriginal = productos.stream().filter(p -> p.getNombre().equals(nombreOriginal)).findFirst().orElse(null);
+            if (prodOriginal == null) return;
             Double precioOriginal = consultasRead.obtenerPrecioProducto(nombreOriginal, currentCategId);
-
             if (precioOriginal != null) {
                 try {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/grupo2_2dam/tpv_software/vistas/vista_modificar_producto.fxml"));
                     javafx.scene.Parent root = loader.load();
                     ModificarProductoControlador controlador = loader.getController();
-                    controlador.inicializarDatos(nombreOriginal, precioOriginal, currentCategId, this);
-
+                    controlador.inicializarDatos(nombreOriginal, precioOriginal, currentCategId, prodOriginal.getImagenRuta(), this);
                     Stage stage = new Stage();
                     stage.setTitle("Modificar Producto");
                     stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-                    stage.setScene(new javafx.scene.Scene(root));
+                    stage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
+
+                    javafx.scene.Scene scene = new javafx.scene.Scene(root);
+                    scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+                    stage.setScene(scene);
+
                     stage.setResizable(false);
                     stage.showAndWait();
                 } catch (Exception e) {
@@ -347,9 +317,6 @@ public class VistaPrincipalControlador {
         }
     }
 
-    /**
-     * Eliminar un producto existente en la base de datos, comprobando que el nombre exista en esa categoría, y recargando los productos para mostrar el cambio, además de mostrar alertas en caso de error. Si el producto tiene ventas, movimientos o líneas de venta asociadas, no se podrá eliminar el producto, mostrando una alerta informativa al usuario
-     */
     private void eliminarProducto() {
         List<Producto> productos = consultasRead.obtenerProductosPorCategoria(currentCategId);
         if (productos == null || productos.isEmpty()) {
@@ -357,16 +324,17 @@ public class VistaPrincipalControlador {
             return;
         }
 
-        // Creamos la lista para el desplegable usando un bucle tradicional
-        List<String> nombres = new java.util.ArrayList<>();
-        for (Producto prod : productos) {
-            nombres.add(prod.getNombre());
-        }
+        List<String> nombres = new ArrayList<>();
+        for (Producto prod : productos) nombres.add(prod.getNombre());
 
         ChoiceDialog<String> dialog = new ChoiceDialog<>(nombres.get(0), nombres);
         dialog.setTitle("Eliminar Producto");
         dialog.setHeaderText("Selecciona el producto a eliminar");
         dialog.setContentText("Producto:");
+
+        // Icono para el ChoiceDialog
+        Stage dialogStage = (Stage) dialog.getDialogPane().getScene().getWindow();
+        dialogStage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
 
         java.util.Optional<String> resultado = dialog.showAndWait();
         if (resultado.isPresent()) {
@@ -377,61 +345,42 @@ public class VistaPrincipalControlador {
             confirm.setHeaderText("Borrado de producto");
             confirm.setContentText("¿Estás seguro de que deseas eliminar el producto '" + nombre + "'?");
 
+            // Icono para el Alert
+            Stage confirmStage = (Stage) confirm.getDialogPane().getScene().getWindow();
+            confirmStage.getIcons().add(new Image(getClass().getResourceAsStream("/imagenes/icon_tpv.png")));
+
             java.util.Optional<ButtonType> respuesta = confirm.showAndWait();
-            if (respuesta.isPresent()) {
-                if (respuesta.get() == ButtonType.OK) {
-                    boolean eliminado = consultasDelete.eliminarProducto(nombre, currentCategId);
-                    if (eliminado) {
-                        cargarProductos();
-                        alertas.mostrarAlerta("Éxito", "Producto eliminado correctamente.");
-                    } else {
-                        alertas.mostrarAlerta("Error", "No se puede eliminar el producto porque tiene ventas o movimientos asociados.");
-                    }
+            if (respuesta.isPresent() && respuesta.get() == ButtonType.OK) {
+                boolean eliminado = consultasDelete.eliminarProducto(nombre, currentCategId);
+                if (eliminado) {
+                    cargarProductos();
+                    alertas.mostrarAlerta("Éxito", "Producto eliminado correctamente.");
+                } else {
+                    alertas.mostrarAlerta("Error", "No se puede eliminar el producto porque tiene ventas o movimientos asociados.");
                 }
             }
         }
     }
-    //------------------------------------PRODUCTOS-------------------------------------
 
-    /**
-     * Categoria Existe: Método auxiliar para comprobar si una categoría existe en la base de datos, comparando el nombre de la categoría de forma insensible a mayúsculas y espacios al inicio o final, y devolviendo true si existe o false si no existe, mostrando una alerta en caso de error de conexión a la base de datos
-     * @param nombreCategoria
-     * @return
-     */
     private boolean categoriaExiste(String nombreCategoria) {
         String sql = "SELECT COUNT(*) FROM CATEGORIAS WHERE UPPER(NOMBRE_CATEGORIA) = UPPER(?)";
-
-        try (java.sql.Connection conn = obtenerConexion();
-             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
+        try (Connection conn = obtenerConexion(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, nombreCategoria.trim());
-
-            try (java.sql.ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0; //Devuelve true si es mayor a 0
-                }
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
             }
-        } catch (java.sql.SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             alertas.mostrarAlerta("Error de Conexión", "Fallo al verificar la existencia de la categoría.");
         }
         return false;
     }
 
-    /**
-     * Producto Existe: Método auxiliar para comprobar si un producto existe en la base de datos dentro de una categoría, comparando el nombre del producto de forma insensible a mayúsculas y espacios al inicio o final, y devolviendo true si existe o false si no existe, mostrando una alerta en caso de error de conexión a la base de datos
-     * @param nombreProducto
-     * @param codCategoria
-     * @return
-     */
     private boolean productoExiste(String nombreProducto, int codCategoria) {
         String sql = "SELECT COUNT(*) FROM PRODUCTOS WHERE UPPER(NOMBRE_PRODUCTO) = UPPER(?) AND COD_CATEGORIA = ?";
-        try (Connection conn = obtenerConexion();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
+        try (Connection conn = obtenerConexion(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, nombreProducto.trim());
             pstmt.setInt(2, codCategoria);
-
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) return rs.getInt(1) > 0;
             }
@@ -441,10 +390,6 @@ public class VistaPrincipalControlador {
         return false;
     }
 
-
-    /**
-     * Cargar Categorías y Productos: Método para cargar las categorías o productos desde la base de datos dependiendo del panel en el que estemos, creando dinámicamente botones para cada categoría o producto con su nombre, añadiendo estilos personalizados a los botones, y estableciendo la lógica para cambiar entre panel de categorías y productos al hacer clic en los botones, además de mostrar alertas en caso de error de conexión a la base de datos
-     */
     @FXML
     public void cargarCategorias() {
         flowProductos.getChildren().clear();
@@ -457,18 +402,26 @@ public class VistaPrincipalControlador {
             MFXButton btnCategoria = new MFXButton(cat.getNombre());
             btnCategoria.getStyleClass().add("mfx-button-categoria");
             btnCategoria.setPrefSize(150, 120);
+            btnCategoria.setContentDisplay(ContentDisplay.TOP);
+            ImageView imgView = new ImageView();
+            imgView.setFitWidth(70);
+            imgView.setFitHeight(70);
+            imgView.setPreserveRatio(true);
+            if (cat.getImagenRuta() != null && !cat.getImagenRuta().isEmpty()) {
+                String rutaCompleta = System.getProperty("user.home") + "/.tpv_software/" + cat.getImagenRuta();
+                Image img = new Image("file:" + rutaCompleta);
+                imgView.setImage(img);
+            } else {
+                imgView.setImage(new Image(getClass().getResourceAsStream("/imagenes/default_category.png")));
+            }
+            btnCategoria.setGraphic(imgView);
             btnCategoria.setOnAction(e -> cambiarModoProductos(cat.getCodigo(), cat.getNombre()));
             flowProductos.getChildren().add(btnCategoria);
         }
     }
 
-    /**
-     * Cargar productos: Método para cargar los productos de la categoría seleccionada desde la base de datos, creando dinámicamente botones para cada producto con su nombre, añadiendo estilos personalizados a los botones, y estableciendo la lógica para añadir el producto al ticket al hacer clic en el botón del producto, además de mostrar alertas en caso de error de conexión a la base de datos
-     */
     public void cargarProductos() {
         flowProductos.getChildren().clear();
-
-        //Volver a las categorías
         MFXButton btnVolver = new MFXButton("⬅ Volver");
         btnVolver.getStyleClass().add("mfx-button-categoria");
         btnVolver.setPrefSize(150, 120);
@@ -484,6 +437,19 @@ public class VistaPrincipalControlador {
             MFXButton btnProducto = new MFXButton(prod.getNombre());
             btnProducto.getStyleClass().add("mfx-button-producto");
             btnProducto.setPrefSize(150, 120);
+            btnProducto.setContentDisplay(ContentDisplay.TOP);
+            ImageView imgView = new ImageView();
+            imgView.setFitWidth(70);
+            imgView.setFitHeight(70);
+            imgView.setPreserveRatio(true);
+            if (prod.getImagenRuta() != null && !prod.getImagenRuta().isEmpty()) {
+                String rutaCompleta = System.getProperty("user.home") + "/.tpv_software/" + prod.getImagenRuta();
+                Image img = new Image("file:" + rutaCompleta);
+                imgView.setImage(img);
+            } else {
+                imgView.setImage(new Image(getClass().getResourceAsStream("/imagenes/default_product.png")));
+            }
+            btnProducto.setGraphic(imgView);
             btnProducto.setOnAction(e -> agregarAlTicket(prod.getNombre()));
             flowProductos.getChildren().add(btnProducto);
         }
@@ -493,159 +459,96 @@ public class VistaPrincipalControlador {
         panelCategorias = true;
         currentCategId = -1;
         currentCategNombre = "";
-
-        //Cambiamos los textos de los botones laterales CATEGORÍA
         if (btnAnadir != null) btnAnadir.setText("Añadir Categoría");
         if (btnModificar != null) btnModificar.setText("Modificar Categoría");
         if (btnEliminar != null) btnEliminar.setText("Eliminar Categoría");
-
         cargarCategorias();
     }
 
-    /**
-     * Cambiar a modo productos: Método para cambiar al panel de productos de una categoría, guardando el id y nombre de la categoría seleccionada en variables de estado para usarlas en otras funciones, cambiando el texto de los botones laterales para reflejar que ahora se está en el panel de productos, y llamando a la función de cargar productos para mostrar los productos de la categoría seleccionada, además de mostrar alertas en caso de error de conexión a la base de datos
-     * @param codCategoria
-     * @param nombreCategoria
-     */
     private void cambiarModoProductos(int codCategoria, String nombreCategoria) {
         panelCategorias = false;
         currentCategId = codCategoria;
         currentCategNombre = nombreCategoria;
-
-
         if (btnAnadir != null) btnAnadir.setText("Añadir Producto");
         if (btnModificar != null) btnModificar.setText("Modificar Producto");
         if (btnEliminar != null) btnEliminar.setText("Eliminar Producto");
-
         cargarProductos();
     }
 
-    /**
-     * Agreagar al ticket: Método para añadir un producto al ticket de venta, mostrando un diálogo para introducir la cantidad
-     * o peso del producto dependiendo de la categoría a la que pertenezca el producto (si es una categoría de peso se pedirá el peso en kg,
-     * si no se pedirá la cantidad en unidades),
-     * comprobando que el valor introducido sea válido (un número positivo, y si es por cantidad que sea un entero),
-     * recuperando el precio del producto desde la base de datos, calculando el total de la línea y
-     * actualizando el subtotal de la venta, añadiendo una nueva línea al ticket con el formato adecuado para mostrar el producto, cantidad/peso,
-     * precio unitario y total de la línea,
-     * y estableciendo la lógica para modificar o eliminar el producto del ticket al hacer clic en la línea del ticket correspondiente,
-     * además de mostrar alertas en caso de error de conexión a la base de datos o si el valor introducido no es válido
-     * @param nombreProducto
-     */
     private void agregarAlTicket(String nombreProducto) {
         String nombreCat = currentCategNombre.toUpperCase();
         boolean cobroPorPeso = nombreCat.contains("FRUTA") || nombreCat.contains("VERDURA") ||
                 nombreCat.contains("CARNE") || nombreCat.contains("PESCADO");
-
         TextInputDialog dialog = new TextInputDialog(cobroPorPeso ? "1.000" : "1");
         dialog.setTitle("Añadir al carrito");
         dialog.setHeaderText("Producto: " + nombreProducto);
         dialog.setContentText(cobroPorPeso ? "Peso en Kg:" : "Cantidad:");
-
         dialog.showAndWait().ifPresent(cantidadStr -> {
             Double precioRecuperado = consultasRead.obtenerPrecioProducto(nombreProducto, currentCategId);
             if (precioRecuperado == null) {
                 alertas.mostrarAlerta("Error de BD", "No se pudo obtener el precio.");
                 return;
             }
-
             final double precioUnitario = precioRecuperado;
-
             try {
                 double cantIni = Double.parseDouble(cantidadStr.trim().replace(",", "."));
                 if (cantIni <= 0 || (!cobroPorPeso && cantIni % 1 != 0)) {
                     alertas.mostrarAlerta("Error", "Cantidad no válida.");
                     return;
                 }
-
-                //Listado de productos
                 DetalleTicket nuevoItem = new DetalleTicket(nombreProducto, cantIni, precioUnitario, cantIni * precioUnitario);
                 listaProductosTicket.add(nuevoItem);
-
                 double[] estadoLinea = {cantIni, cantIni * precioUnitario};
                 subtotalVenta += estadoLinea[1];
-
-                //estilo de cada línea del ticket, asi sabremos con el cursor encima en qué producto estamos
                 javafx.scene.layout.HBox linea = new javafx.scene.layout.HBox();
                 linea.setPadding(new javafx.geometry.Insets(5, 5, 5, 5));
                 linea.setStyle("-fx-cursor: hand; -fx-background-color: transparent;");
                 linea.setOnMouseEntered(e -> linea.setStyle("-fx-cursor: hand; -fx-background-color: #f0f0f0; -fx-background-radius: 5;"));
                 linea.setOnMouseExited(e -> linea.setStyle("-fx-cursor: hand; -fx-background-color: transparent;"));
-
-                //---------------línea del ticket-----------------
-                javafx.scene.control.Label lblProd = new javafx.scene.control.Label();
-                //el resto de espacio que ocupa la línea
-                javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+                Label lblProd = new Label();
+                Region spacer = new Region();
                 javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
-                //línea con producto, cantidad y precio final
-                javafx.scene.control.Label lblTotal = new javafx.scene.control.Label();
-                //---------------línea del ticket-----------------
-
+                Label lblTotal = new Label();
                 Runnable actualizarLabels = () -> {
-                    //formato en el ticket
-                    //si va por peso se pondrá el producto y su peso con 3 decimales
-                    //si va por cantidad se pondrá la cantidad del producto
                     String txtCant = cobroPorPeso ? String.format("%.3f kg", estadoLinea[0]).replace(",", ".") : (int)estadoLinea[0] + "x";
                     String uni = cobroPorPeso ? "kg" : "ud";
                     lblProd.setText(txtCant + " " + nombreProducto + String.format(" (%.2f €/%s)", precioUnitario, uni).replace(",", "."));
                     lblTotal.setText(String.format("%.2f €", estadoLinea[1]).replace(",", "."));
-
                     nuevoItem.setCantidad(estadoLinea[0]);
                     nuevoItem.setTotalLinea(estadoLinea[1]);
                 };
                 actualizarLabels.run();
-
-                //si clicamos en el producto podremos modificarlo
-                linea.setOnMouseClicked(event -> {
-                    modificarTicket(linea, nuevoItem, cobroPorPeso, estadoLinea, actualizarLabels);
-                });
-
+                linea.setOnMouseClicked(event -> modificarTicket(linea, nuevoItem, cobroPorPeso, estadoLinea, actualizarLabels));
                 linea.getChildren().addAll(lblProd, spacer, lblTotal);
                 ticketVBox.getChildren().add(linea);
                 subtotalLabel.setText(String.format("%.2f €", subtotalVenta).replace(",", "."));
-
             } catch (NumberFormatException e) {
                 alertas.mostrarAlerta("Error", "Introduce una cantidad válida");
             }
         });
     }
 
-    /**
-     * Modificar ticket: Método para modificar un producto ya añadido al ticket, mostrando una alerta con opciones para modificar la cantidad/peso o eliminar el producto del ticket, y dependiendo de la opción elegida mostrando un diálogo para introducir la nueva cantidad/peso o eliminando el producto directamente, comprobando que el valor introducido sea válido (un número positivo, y si es por cantidad que sea un entero), actualizando el subtotal de la venta, actualizando la línea del ticket correspondiente con el nuevo formato adecuado para mostrar el producto, cantidad/peso, precio unitario y total de la línea, o eliminando la línea del ticket si se ha elegido eliminar, además de mostrar alertas en caso de error si el valor introducido no es válido
-     * @param linea
-     * @param item
-     * @param porPeso
-     * @param estado
-     * @param refresh
-     */
     private void modificarTicket(javafx.scene.layout.HBox linea, DetalleTicket item, boolean porPeso, double[] estado, Runnable refresh) {
-        javafx.scene.control.Alert opciones = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        Alert opciones = new Alert(Alert.AlertType.CONFIRMATION);
         opciones.setTitle("Modificar producto");
         opciones.setHeaderText("Producto: " + item.getNombreProducto());
         opciones.setContentText("¿Qué deseas hacer con este producto?");
-
-        //opciones de modificación
-        javafx.scene.control.ButtonType btnModificar = new javafx.scene.control.ButtonType("Modificar Cantidad");
-        javafx.scene.control.ButtonType btnEliminar = new javafx.scene.control.ButtonType("Eliminar");
-        javafx.scene.control.ButtonType btnCancelar = new javafx.scene.control.ButtonType("Cancelar", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
-
+        ButtonType btnModificar = new ButtonType("Modificar Cantidad");
+        ButtonType btnEliminar = new ButtonType("Eliminar");
+        ButtonType btnCancelar = new ButtonType("Cancelar", ButtonBar.ButtonData.CANCEL_CLOSE);
         opciones.getButtonTypes().setAll(btnModificar, btnEliminar, btnCancelar);
-
         opciones.showAndWait().ifPresent(opcion -> {
             if (opcion == btnEliminar) {
                 listaProductosTicket.remove(item);
-
                 subtotalVenta -= estado[1];
                 ticketVBox.getChildren().remove(linea);
                 subtotalLabel.setText(String.format("%.2f €", Math.abs(subtotalVenta)).replace(",", "."));
-
             } else if (opcion == btnModificar) {
                 String cantActualStr = porPeso ? String.valueOf(estado[0]) : String.valueOf((int)estado[0]);
                 TextInputDialog dialogEdit = new TextInputDialog(cantActualStr);
                 dialogEdit.setTitle("Modificar Cantidad");
                 dialogEdit.setHeaderText("Nueva cantidad para: " + item.getNombreProducto());
                 dialogEdit.setContentText(porPeso ? "Peso en Kg:" : "Cantidad:");
-
                 dialogEdit.showAndWait().ifPresent(nuevaCantStr -> {
                     try {
                         double nuevaCant = Double.parseDouble(nuevaCantStr.trim().replace(",", "."));
@@ -653,20 +556,14 @@ public class VistaPrincipalControlador {
                             alertas.mostrarAlerta("Error", "Cantidad no válida.");
                             return;
                         }
-
-                        //actualizamos el subtotal global, restamos lo anterior y sumamos lo nuevo
                         subtotalVenta -= estado[1];
                         estado[0] = nuevaCant;
                         estado[1] = nuevaCant * item.getPrecioUnitario();
                         subtotalVenta += estado[1];
-
-                        //actualizamos la lista
                         item.setCantidad(nuevaCant);
                         item.setTotalLinea(estado[1]);
-
                         refresh.run();
                         subtotalLabel.setText(String.format("%.2f €", subtotalVenta).replace(",", "."));
-
                     } catch (NumberFormatException ex) {
                         alertas.mostrarAlerta("Error", "Introduce una cantidad válida");
                     }
@@ -675,75 +572,49 @@ public class VistaPrincipalControlador {
         });
     }
 
-    /**
-     * Abrir pantalla de pago: Método para abrir la pantalla de pago al hacer clic en el botón de pagar, comprobando que el subtotal de la venta sea mayor a 0 (que haya productos añadidos al ticket) antes de abrir la pantalla de pago, y mostrando una alerta informativa si se intenta pagar con el carrito vacío. Si el carrito no está vacío, se carga la vista de pago desde su archivo FXML, se obtiene el controlador de la vista de pago para pasarle los datos necesarios (lista de productos del ticket, subtotal de la venta y la escena actual para poder volver a ella), y se cambia la escena actual por la escena de pago, aplicando también la hoja de estilos CSS para mantener el estilo visual consistente, además de mostrar alertas en caso de error al cargar la vista de pago
-     * @param event
-     */
     @FXML
     private void abrirPantallaPago(ActionEvent event) {
         if (subtotalVenta <= 0) {
             alertas.mostrarAlerta("Carrito vacío", "Añade productos antes de pagar.");
             return;
         }
-
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/grupo2_2dam/tpv_software/vistas/vista_pago.fxml"));
             javafx.scene.Parent root = loader.load();
-
-            //controlador de la vista de pagos
             VistaPagoControlador pagoController = loader.getController();
-
-            //cargamos los datos en la pantalla de pago
             pagoController.inicializarDatos(this.listaProductosTicket, subtotalVenta, subtotalLabel.getScene());
-
-            //cambiamos la vista
-            javafx.stage.Stage stage = (javafx.stage.Stage) subtotalLabel.getScene().getWindow();
+            Stage stage = (Stage) subtotalLabel.getScene().getWindow();
             javafx.scene.Scene nuevaEscena = new javafx.scene.Scene(root, stage.getScene().getWidth(), stage.getScene().getHeight());
             nuevaEscena.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
             stage.setScene(nuevaEscena);
-
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             alertas.mostrarAlerta("Error", "No se pudo cargar la vista de pago.");
         }
     }
 
-    /**
-     * Método para manejar el evento de añadir un nuevo usuario al sistema,
-     * mostrando un diálogo para introducir el nombre de usuario y otro para introducir la contraseña, comprobando que ambos valores no estén vacíos,
-     * y llamando a la función de crear cuenta del modelo de usuario para intentar crear la cuenta con los datos introducidos,
-     * mostrando una alerta informativa si la cuenta se ha creado correctamente o si ha habido un error (por ejemplo, si el nombre de usuario ya existe)
-     * @param actionEvent
-     */
     public void handleAnadirUsuario(ActionEvent actionEvent) {
-        // 1. Pedir nombre de usuario
         TextInputDialog dialogUser = new TextInputDialog();
         dialogUser.setTitle("Crear cuenta");
         dialogUser.setHeaderText("Nueva cuenta");
         dialogUser.setContentText("Nombre de usuario:");
-        dialogUser.showAndWait();  // ESPERA a que el usuario escriba y pulse OK
 
+        dialogUser.showAndWait();
         String nombreUsuario = dialogUser.getEditor().getText();
         if (nombreUsuario.isEmpty()) {
             alertas.mostrarAlerta("Error", "Debes escribir un nombre");
             return;
         }
-
-        // 2. Pedir contraseña
         TextInputDialog dialogPass = new TextInputDialog();
         dialogPass.setTitle("Contraseña");
         dialogPass.setHeaderText("Contraseña para " + nombreUsuario);
         dialogPass.setContentText("Contraseña:");
-        dialogPass.showAndWait();  // ESPERA
-
+        dialogPass.showAndWait();
         String contrasenaUsuario = dialogPass.getEditor().getText();
         if (contrasenaUsuario.isEmpty()) {
             alertas.mostrarAlerta("Error", "Debes escribir una contraseña");
             return;
         }
-
-        // 3. Crear cuenta
-        FuncionUsuario funcionUsuario = new FuncionUsuario();
         boolean creado = funcionUsuario.crearCuenta(nombreUsuario, contrasenaUsuario);
         if (creado) {
             alertas.mostrarAlerta("Éxito", "Cuenta creada correctamente");

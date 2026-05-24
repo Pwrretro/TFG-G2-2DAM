@@ -3,12 +3,16 @@ package com.grupo2_2dam.tpv_software.controladores;
 import com.grupo2_2dam.tpv_software.util.Alertas;
 import com.grupo2_2dam.tpv_software.util.basededatos.crud.ConsultasCreate;
 import com.grupo2_2dam.tpv_software.util.basededatos.crud.ConsultasRead;
+import com.grupo2_2dam.tpv_software.util.tratadodeimagenes.GestorImagenes;
 import io.github.palexdev.materialfx.controls.MFXButton;
 import io.github.palexdev.materialfx.controls.MFXTextField;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import java.io.File;
 
 public class AnadirProductoControlador {
 
@@ -23,17 +27,16 @@ public class AnadirProductoControlador {
     private int idCategoria;
     private String nombreCategoria;
     private VistaPrincipalControlador controladorPrincipal;
+    private File imagenSeleccionada;
 
     private ConsultasCreate consultasCreate = new ConsultasCreate();
     private ConsultasRead consultasRead = new ConsultasRead();
     private Alertas alertas = new Alertas();
 
-    // Método para recibir los datos desde el controlador principal
     public void inicializarDatos(int idCategoria, String nombreCategoria, VistaPrincipalControlador controladorPrincipal) {
         this.idCategoria = idCategoria;
         this.nombreCategoria = nombreCategoria;
         this.controladorPrincipal = controladorPrincipal;
-
         lblTitulo.setText("Añadir producto para " + nombreCategoria);
     }
 
@@ -47,7 +50,6 @@ public class AnadirProductoControlador {
             return;
         }
 
-        //comprobamos que no está ya creado
         if (consultasRead.existeProducto(nombre, idCategoria)) {
             alertas.mostrarAlerta("Error", "El producto ya existe en esta categoría.");
             return;
@@ -55,10 +57,16 @@ public class AnadirProductoControlador {
 
         try {
             double precio = Double.parseDouble(precioStr);
-            boolean creado = consultasCreate.crearProducto(nombre, precio, idCategoria);
-
+            String imagenRuta = null;
+            if (imagenSeleccionada != null) {
+                String nombreBase = "producto_" + nombre.replaceAll("\\s+", "_");
+                imagenRuta = GestorImagenes.guardarImagen(imagenSeleccionada, nombreBase, 150, 150);
+                if (imagenRuta == null) {
+                    alertas.mostrarAlerta("Error de imagen", "No se pudo guardar la imagen. El producto se creará sin imagen.");
+                }
+            }
+            boolean creado = consultasCreate.crearProducto(nombre, precio, idCategoria, imagenRuta);
             if (creado) {
-                //recargamos los productos
                 controladorPrincipal.cargarProductos();
                 cerrarVentana();
                 alertas.mostrarAlerta("Éxito", "Producto añadido correctamente.");
@@ -72,8 +80,16 @@ public class AnadirProductoControlador {
 
     @FXML
     private void seleccionarImagen() {
-        //Lógica futura para abrir un 'FileChooser' y cargar la imagen
-        alertas.mostrarAlerta("Información", "La subida de imágenes se implementará próximamente.");
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif")
+        );
+        File file = fileChooser.showOpenDialog(btnImagen.getScene().getWindow());
+        if (file != null) {
+            imagenSeleccionada = file;
+            Image preview = new Image(file.toURI().toString(), 60, 60, true, true);
+            imgVistaPrevia.setImage(preview);
+        }
     }
 
     @FXML

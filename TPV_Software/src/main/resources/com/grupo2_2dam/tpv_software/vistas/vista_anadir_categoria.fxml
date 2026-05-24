@@ -8,22 +8,21 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="TOP_CENTER" spacing="20.0" styleClass="modal-container" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.grupo2_2dam.tpv_software.controladores.ModificarProductoControlador">
+<VBox alignment="TOP_CENTER" spacing="20.0" styleClass="modal-container" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.grupo2_2dam.tpv_software.controladores.AnadirCategoriaControlador">
     <children>
-        <Label fx:id="lblTitulo" text="Modificar Producto" styleClass="modal-title" />
+        <Label fx:id="lblTitulo" text="Añadir Nueva Categoría" styleClass="modal-title" />
 
         <VBox spacing="15.0">
-            <MFXTextField fx:id="txtNombre" floatingText="Nuevo nombre del producto" prefWidth="300.0" />
-            <MFXTextField fx:id="txtPrecio" floatingText="Nuevo precio (€)" prefWidth="300.0" />
+            <MFXTextField fx:id="txtNombre" floatingText="Nombre de la categoría" prefWidth="300.0" />
             <HBox alignment="CENTER_LEFT" spacing="15.0">
-                <MFXButton fx:id="btnSeleccionarImagen" onAction="#seleccionarImagen" text="Cambiar imagen" styleClass="mfx-button-secundario" />
+                <MFXButton fx:id="btnImagen" onAction="#seleccionarImagen" text="Seleccionar Imagen..." styleClass="mfx-button-secundario" />
                 <ImageView fx:id="imgVistaPrevia" fitHeight="60" fitWidth="60" preserveRatio="true" />
             </HBox>
         </VBox>
 
         <HBox alignment="CENTER" spacing="20.0">
             <MFXButton fx:id="btnCancelar" onAction="#cerrarVentana" text="Cancelar" styleClass="btn-cancelar" />
-            <MFXButton fx:id="btnGuardar" onAction="#guardarCambios" text="Guardar Cambios" styleClass="btn-guardar" />
+            <MFXButton fx:id="btnGuardar" onAction="#guardarCategoria" text="Guardar Categoría" styleClass="btn-guardar" />
         </HBox>
     </children>
 </VBox>

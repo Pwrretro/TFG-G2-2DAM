@@ -2,12 +2,8 @@
 @import "colores.css";
 
 /*
-
-    ESTO ES SUPER IMPORTANTE ORDENARLO PARA HACERLO ESCALABLE 😭😭😭😭😭😭
-
+    ESTILOS GENERALES
 */
-
-/* Estilos generales */
 .mfx-button {
     -fx-background-radius: 10;
     -fx-padding: 8 24 8 24;
@@ -23,7 +19,9 @@
     -fx-pref-width: 250;
 }
 
-/* Panel lateral izquierdo */
+/*
+    PANEL LATERAL IZQUIERDO
+*/
 .sidebar {
     -fx-background-color: -gris-fondo-lateral;
 }
@@ -42,7 +40,6 @@
 
 .logout-button {
     -fx-border-color: -morado-principal;
-    /*-fx-border-radius: 50;*/
     -fx-background-radius: 10;
     -fx-min-width: 40;
     -fx-min-height: 40;
@@ -51,7 +48,9 @@
     -fx-font-size: 18;
 }
 
-/* Centro (categorías) */
+/*
+    CENTRO (CATEGORÍAS Y PRODUCTOS)
+*/
 .section-title {
     -fx-font-size: 22;
     -fx-font-weight: bold;
@@ -63,7 +62,9 @@
     -fx-background: -blanco;
 }
 
-/* Panel derecho (resumen)  */
+/*
+    PANEL DERECHO (RESUMEN)
+*/
 .summary-pane {
     -fx-background-color: -blanco;
     -fx-border-color: -gris-borde;
@@ -81,7 +82,9 @@
     -fx-text-fill: -morado-principal;
 }
 
-/* Botón Pagar */
+/*
+    BOTÓN PAGAR
+*/
 .mfx-button-pagar {
     -fx-background-color: -teal-accion;
     -fx-text-fill: -negro-texto;
@@ -89,7 +92,9 @@
     -fx-background-radius: 5;
 }
 
-/* Botones de categoría y producto (existentes) */
+/*
+    BOTONES DE CATEGORÍA Y PRODUCTO
+*/
 .mfx-button-categoria {
     -fx-background-color: -morado-principal;
     -fx-text-fill: -blanco;
@@ -108,10 +113,77 @@
     -fx-content-display: TOP;
 }
 
-
-/*Centrar imagen de perfil*/
+/*
+    BORDE DE LA FOTO DE PERFIL
+*/
 .avatar-border {
     -fx-stroke: -morado-principal;
     -fx-stroke-width: 3;
     -fx-fill: transparent;
+}
+
+/* ============================================= */
+/* NUEVOS ESTILOS PARA VENTANAS MODALES          */
+/* ============================================= */
+
+/* Contenedor principal de las ventanas de añadir/modificar */
+.modal-container {
+    -fx-background-color: white;
+    -fx-padding: 30;
+    -fx-spacing: 20;
+    -fx-alignment: TOP_CENTER;
+}
+
+/* Título de la ventana modal */
+.modal-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+}
+
+/* Botón Cancelar / Eliminar (rojo) */
+.btn-cancelar {
+    -fx-background-color: #ff4c4c;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-padding: 8 24 8 24;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.btn-cancelar:hover {
+    -fx-background-color: #e04343;
+}
+
+/* Botón Guardar / Añadir (verde) */
+.btn-guardar {
+    -fx-background-color: #4caf50;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-padding: 8 24 8 24;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.btn-guardar:hover {
+    -fx-background-color: #3e8e41;
+}
+
+/* Botón secundario (Seleccionar imagen / Cambiar imagen) */
+.mfx-button-secundario {
+    -fx-background-color: #f0f0f0;
+    -fx-text-fill: #333333;
+    -fx-background-radius: 5;
+    -fx-padding: 8 16 8 16;
+    -fx-font-weight: normal;
+    -fx-cursor: hand;
+}
+
+.mfx-button-secundario:hover {
+    -fx-background-color: #e0e0e0;
+}
+
+/* Margen adicional para los botones dentro de modales */
+.modal-container .button, .modal-container .mfx-button {
+    -fx-margin: 5px;
 }

@@ -5,17 +5,13 @@ public class Usuario {
     int cod_usuario;
     String nombre_usuario;
     String contrasena_usuario;
+    private String imagenRuta;
 
-    /**
-     * Usuario con su código de usuario, nombre de usuario y contraseña de usuario
-     * @param cod_usuario
-     * @param nombre_usuario
-     * @param contrasena_usuario
-     */
-    public Usuario(int cod_usuario, String nombre_usuario, String contrasena_usuario) {
+    public Usuario(int cod_usuario, String nombre_usuario, String contrasena_usuario, String imagenRuta) {
         this.cod_usuario = cod_usuario;
         this.nombre_usuario = nombre_usuario;
         this.contrasena_usuario = contrasena_usuario;
+        this.imagenRuta = imagenRuta;
     }
 
     public int getCod_usuario() {
@@ -40,5 +36,13 @@ public class Usuario {
 
     public void setContrasena_usuario(String contrasena_usuario) {
         this.contrasena_usuario = contrasena_usuario;
+    }
+
+    public String getImagenRuta() {
+        return imagenRuta;
+    }
+
+    public void setImagenRuta(String imagenRuta) {
+        this.imagenRuta = imagenRuta;
     }
 }

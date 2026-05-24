@@ -9,7 +9,7 @@
 
 <?import io.github.palexdev.mfxcore.controls.Label?>
 <VBox alignment="CENTER" prefHeight="500.0" prefWidth="500.0" spacing="15.0"
-      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.grupo2_2dam.tpv_software.controladores.ConfiguracionControlador"
       >
     <padding>

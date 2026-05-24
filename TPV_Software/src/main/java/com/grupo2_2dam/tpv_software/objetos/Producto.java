@@ -4,10 +4,12 @@ public class Producto {
 
     private String nombre;
     private double precio;
+    private String imagenRuta;
 
-    public Producto(String nombre, double precio) {
+    public Producto(String nombre, double precio, String imagenRuta) {
         this.nombre = nombre;
         this.precio = precio;
+        this.imagenRuta = imagenRuta;
     }
 
     public String getNombre() {
@@ -24,5 +26,13 @@ public class Producto {
 
     public void setPrecio(double precio) {
         this.precio = precio;
+    }
+
+    public String getImagenRuta() {
+        return imagenRuta;
+    }
+
+    public void setImagenRuta(String imagenRuta) {
+        this.imagenRuta = imagenRuta;
     }
 }

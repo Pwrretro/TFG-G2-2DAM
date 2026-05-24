@@ -4,10 +4,12 @@ public class Categoria {
 
     private int codigo;
     private String nombre;
+    private String imagenRuta;
 
-    public Categoria(int codigo, String nombre) {
+    public Categoria(int codigo, String nombre, String imagenRuta) {
         this.codigo = codigo;
         this.nombre = nombre;
+        this.imagenRuta = imagenRuta;
     }
 
     public int getCodigo() {
@@ -24,5 +26,13 @@ public class Categoria {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public String getImagenRuta() {
+        return imagenRuta;
+    }
+
+    public void setImagenRuta(String imagenRuta) {
+        this.imagenRuta = imagenRuta;
     }
 }
