@@ -103,7 +103,12 @@ public class ConfiguracionControlador {
      * @throws IOException
      */
     @FXML
-    private void guardarConfiguracion() throws IOException {
+    private void guardarConfiguracion() throws IOException, SQLException {
+
+        if (!probarConfiguracion()){
+            alertas.mostrarAlerta("Conexión fallida", "No se pudo conectar con la base de datos. Por favor, revisa tu configuración antes de guardarla.");
+            return;
+        }
 
         WRJSON wrjson = new WRJSON();
         DatosConexion dc = obtenerDatos();
@@ -126,6 +131,18 @@ public class ConfiguracionControlador {
      */
     @FXML
     private boolean probarConfiguracion() throws SQLException {
+
+        if (rbHost.isSelected()) {
+            if (hostField.getText().isEmpty() || portField.getText().isEmpty() || databaseField.getText().isEmpty() || usernameField.getText().isEmpty() || passwordField.getText().isEmpty()) {
+                alertas.mostrarAlerta("Campos incompletos", "Por favor, completa todos los campos obligatorios para la conexión por host.");
+                return false;
+            }
+        } else {
+            if (urlField.getText().isEmpty() || usernameField.getText().isEmpty() || passwordField.getText().isEmpty()) {
+                alertas.mostrarAlerta("Campos incompletos", "Por favor, completa todos los campos obligatorios para la conexión por URL.");
+                return false;
+            }
+        }
 
         ConexionDB cdb = new ConexionDB();
         DatosConexion dc = obtenerDatos();

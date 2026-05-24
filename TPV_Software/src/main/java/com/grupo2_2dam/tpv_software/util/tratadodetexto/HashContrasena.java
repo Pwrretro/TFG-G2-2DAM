@@ -41,7 +41,7 @@ public class HashContrasena {
     }
 
     /**
-     * Verificar la contraseña comparando el hash almacenado con el hash de la contraseña proporcionada, utilizando los mismos parámetros de salt y iteraciones
+     * Verificar la contraseña comparando el hash almacenado con el hash de la contraseña proporcionada, utilizando los mismos parámetros de salt e iteraciones
      * @param password
      * @param storedHash
      * @return
