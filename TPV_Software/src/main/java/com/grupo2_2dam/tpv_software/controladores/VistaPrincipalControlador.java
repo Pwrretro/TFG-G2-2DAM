@@ -51,7 +51,7 @@ public class VistaPrincipalControlador {
     @FXML private MFXButton btnModificar;
     @FXML private MFXButton btnEliminar;
     @FXML private javafx.scene.layout.VBox ticketVBox;
-    @FXML private Label subtotalLabel;
+    @FXML private Label subtotalLabel, categorias_productos_label;
     @FXML private MFXButton btnPagar;
     @FXML private StackPane fotoContainer;
 
@@ -71,6 +71,8 @@ public class VistaPrincipalControlador {
 
     @FXML
     public void initialize() {
+
+        categorias_productos_label.setText("Categorías");
         Usuario usuario = funcionUsuario.obtenerUsuarioActual();
         nombre_Usuario.setText(usuario.getNombre_usuario());
 
@@ -393,6 +395,7 @@ public class VistaPrincipalControlador {
 
     @FXML
     public void cargarCategorias() {
+        categorias_productos_label.setText("Categorías");
         flowProductos.getChildren().clear();
         List<Categoria> categorias = consultasRead.obtenerCategorias();
         if (categorias == null) {
@@ -430,6 +433,7 @@ public class VistaPrincipalControlador {
     }
 
     public void cargarProductos() {
+        categorias_productos_label.setText(currentCategNombre);
         flowProductos.getChildren().clear();
         MFXButton btnVolver = new MFXButton("⬅ Volver");
         btnVolver.getStyleClass().add("mfx-button-categoria");
