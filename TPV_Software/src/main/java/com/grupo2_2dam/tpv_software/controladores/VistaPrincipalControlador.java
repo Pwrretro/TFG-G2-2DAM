@@ -23,6 +23,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.layout.Region;
@@ -407,6 +408,7 @@ public class VistaPrincipalControlador {
             imgView.setFitWidth(70);
             imgView.setFitHeight(70);
             imgView.setPreserveRatio(true);
+
             if (cat.getImagenRuta() != null && !cat.getImagenRuta().isEmpty()) {
                 String rutaCompleta = System.getProperty("user.home") + "/.tpv_software/" + cat.getImagenRuta();
                 Image img = new Image("file:" + rutaCompleta);
@@ -414,6 +416,13 @@ public class VistaPrincipalControlador {
             } else {
                 imgView.setImage(new Image(getClass().getResourceAsStream("/imagenes/default_category.png")));
             }
+
+            //Redondear imágenes
+            Rectangle clip = new Rectangle(70, 70);
+            clip.setArcWidth(15);   // radio horizontal del redondeo
+            clip.setArcHeight(15);  // radio vertical del redondeo
+            imgView.setClip(clip);
+
             btnCategoria.setGraphic(imgView);
             btnCategoria.setOnAction(e -> cambiarModoProductos(cat.getCodigo(), cat.getNombre()));
             flowProductos.getChildren().add(btnCategoria);
@@ -449,6 +458,13 @@ public class VistaPrincipalControlador {
             } else {
                 imgView.setImage(new Image(getClass().getResourceAsStream("/imagenes/default_product.png")));
             }
+
+            //Redondear imágenes
+            Rectangle clip = new Rectangle(70, 70);
+            clip.setArcWidth(15);   // radio horizontal del redondeo
+            clip.setArcHeight(15);  // radio vertical del redondeo
+            imgView.setClip(clip);
+
             btnProducto.setGraphic(imgView);
             btnProducto.setOnAction(e -> agregarAlTicket(prod.getNombre()));
             flowProductos.getChildren().add(btnProducto);
@@ -621,5 +637,35 @@ public class VistaPrincipalControlador {
         } else {
             alertas.mostrarAlerta("Error", "Cuenta no creada. Es posible que el nombre de usuario ya exista.");
         }
+    }
+
+    public void handleEliminarUsuario(ActionEvent actionEvent) {
+
+        TextInputDialog dialogUser = new TextInputDialog();
+        dialogUser.setTitle("Eliminar cuenta");
+        dialogUser.setHeaderText("Cuenta a eliminar");
+        dialogUser.setContentText("Nombre de usuario:");
+
+        dialogUser.showAndWait();
+        String nombreUsuario = dialogUser.getEditor().getText();
+        if (nombreUsuario.isEmpty()) {
+            alertas.mostrarAlerta("Error", "Debes escribir un nombre");
+            return;
+        }
+
+        String contrasenaUsuario = dialogUser.getEditor().getText();
+        if (contrasenaUsuario.isEmpty()) {
+            alertas.mostrarAlerta("Error", "Debes escribir una contraseña");
+            return;
+        }
+
+        boolean eliminado = funcionUsuario.eliminarCuenta(nombreUsuario);
+
+        if (eliminado) {
+            alertas.mostrarAlerta("Éxito", "Cuenta eliminada correctamente");
+        }else {
+            alertas.mostrarAlerta("Error", "Cuenta no eliminada. Es posible que el nombre de usuario no exista.");
+        }
+
     }
 }

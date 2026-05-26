@@ -1,13 +1,21 @@
 # Grupo 2 - 2 DAM - TFG
+
 ## Integrantes
-Marcos Bueno, Javier Tejera y Alejandro Martín
+
+- Marcos Bueno
+- Javier Tejera
+- Alejandro Martín
 
 ## Tecnologías
-- PostgresSQL - Base de datos
-- AWS - RDS
-- Java - Lenguaje de programación
-- JavaFX - Framework de interfaces
-  - MaterialFX - Biblioteca de estilos
-  - FontAwesomeFX - Biblioteca de íconos
-- Firebase - Para el hosting de la base de datos
-- Jira - Gestión del proyecto
+
+- **PostgreSQL** - Base de datos
+    - **Supabase** - Backend como servicio (base de datos en la nube)
+- **Java 21** - Lenguaje de programación
+- **Maven** - Gestión de dependencias y construcción
+- **JavaFX 21** - Framework de interfaces
+    - **MaterialFX** - Biblioteca de componentes Material Design
+    - **CSS** - Hojas de estilo personalizadas
+    - **Font Awesome** - Biblioteca de iconos vectoriales
+- **JSON (org.json)** - Almacenamiento de configuración y usuario actual
+- **PBKDF2** - Algoritmo de derivación de claves para hash de contraseñas
+- **JasperReports** - Generación de facturas en PDF

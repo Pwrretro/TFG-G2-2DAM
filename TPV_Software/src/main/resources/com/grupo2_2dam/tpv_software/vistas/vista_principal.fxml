@@ -49,7 +49,11 @@
 
             <MFXScrollPane focusTraversable="false" prefHeight="318.0" prefWidth="250.0" />
 
-            <MFXButton fx:id="btnAnadir_usuario" text="Añadir Usuario" onAction="#handleAnadirUsuario" maxWidth="Infinity" styleClass="mfx-button-admin" />
+            <VBox spacing="10.0" alignment="CENTER">
+                <padding><Insets left="20.0" right="20.0" /></padding>
+                <MFXButton fx:id="btnAnadir_usuario" text="Añadir Usuario" onAction="#handleAnadirUsuario" maxWidth="Infinity" styleClass="mfx-button-admin" />
+                <MFXButton fx:id="btnEliminar_usuario" text="Eliminar Usuario" onAction="#handleEliminarUsuario" maxWidth="Infinity" styleClass="mfx-button-admin-delete" />
+            </VBox>
 
             <MFXButton fx:id="regresarButton" alignment="CENTER" onAction="#cerrar_sesion" text="">
                 <graphic>
@@ -60,11 +64,11 @@
     </left>
 
     <center>
-        <VBox spacing="15.0" >
+        <VBox spacing="15.0">
             <padding><Insets bottom="20.0" left="20.0" right="20.0" top="20.0" /></padding>
             <Label styleClass="section-title" text="Categorías y Productos" />
 
-            <ScrollPane fitToWidth="true" styleClass="custom-scroll-pane" VBox.vgrow="ALWAYS">
+            <ScrollPane fitToWidth="true" styleClass="custom-scroll-pane" VBox.vgrow="ALWAYS" style="-fx-border-radius: 10; -fx-background-radius: 10;">
                 <FlowPane fx:id="flowProductos" hgap="15.0" prefWrapLength="600.0" vgap="15.0">
 
                     <!--Botones originales-->

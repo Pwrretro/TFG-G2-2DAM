@@ -57,25 +57,30 @@ public class FuncionUsuario {
         return true;
     }
 
-    public void eliminarCuenta(String nombre_usuario) {
+    public boolean eliminarCuenta(String nombre_usuario) {
+
         if (nombre_usuario.equals("admin")) {
             alertas.mostrarAlerta("Error al eliminar el usuario", "No se puede eliminar el usuario admin.");
-            return;
+            return false;
         }
+
         try {
             Connection conn = ConexionDB.obtenerConexion();
             String sqlEliminarUsuario = "DELETE FROM USUARIOS WHERE NOMBRE_USUARIO = ?";
             PreparedStatement pstmt = conn.prepareStatement(sqlEliminarUsuario);
             pstmt.setString(1, nombre_usuario);
             int filasEliminadas = pstmt.executeUpdate();
+
             if (filasEliminadas > 0) {
                 System.out.println("Usuario eliminado correctamente.");
             } else {
                 System.out.println("No se encontró el usuario para eliminar.");
             }
+
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
+        return true;
     }
 
     public void guardarUsuarioActual(Usuario u) {
